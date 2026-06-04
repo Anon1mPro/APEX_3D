@@ -1,0 +1,1075 @@
+<!DOCTYPE html>
+<!-- APEX3D v3 build:1778378345 -->
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<link rel="icon" href="APEX_ICON.png">
+<title>APEX3D Engine v2.5</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+</head>
+<body>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap');
+:root {
+  --bg:#0a0c10;--panel:#0f1318;--panel2:#111620;--border:#1e2530;
+  --accent:#00e5ff;--accent2:#ff6b35;--accent3:#39ff14;--accent4:#cc88ff;
+  --text:#c8d4e0;--muted:#4a5568;--hover:#1a2030;--red:#ff4444;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);display:flex;flex-direction:column;height:100vh;overflow:hidden;user-select:none}
+
+/* TOP BAR */
+#topbar{height:36px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 10px;gap:12px;flex-shrink:0}
+.logo{font-family:'Share Tech Mono',monospace;color:var(--accent);font-size:12px;letter-spacing:3px;font-weight:700}
+.logo span{color:var(--accent2)}
+.logo sub{color:var(--accent4);font-size:9px;vertical-align:super;letter-spacing:0}
+.sep{width:1px;height:18px;background:var(--border)}
+.menu-btn{background:none;border:none;color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;padding:3px 7px;cursor:pointer;border-radius:3px;transition:all .15s;letter-spacing:.5px}
+.menu-btn:hover{background:var(--hover);color:var(--text)}
+.spacer{flex:1}
+.tstat{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--muted)}
+.tstat .v{color:var(--accent3)}
+/* MULTI-SELECT BAR */
+#multi-sel-bar { pointer-events:all; }
+#multi-sel-bar button:hover { filter:brightness(1.3); }
+
+/* POSITION */
+
+/* MAIN */
+#main{display:flex;flex:1;overflow:hidden}
+
+/* PANELS */
+#left-col{width:185px;display:flex;flex-direction:column;border-right:1px solid var(--border);flex-shrink:0}
+#right-col{width:300px;display:flex;flex-direction:column;border-left:1px solid var(--border);flex-shrink:0;overflow:hidden}
+#inspector-content{flex:1;overflow-y:auto}
+#center-col{flex:1;display:flex;flex-direction:column;overflow:hidden}
+
+.ph{height:28px;display:flex;align-items:center;padding:0 9px;border-bottom:1px solid var(--border);font-size:10px;font-weight:700;letter-spacing:1.5px;color:var(--muted);text-transform:uppercase;gap:5px;flex-shrink:0}
+.ph .dot{width:5px;height:5px;border-radius:50%}
+.panel-tabs{display:flex;border-bottom:1px solid var(--border);flex-shrink:0}
+.ptab{padding:5px 10px;font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;cursor:pointer;color:var(--muted);border-bottom:2px solid transparent;transition:all .15s}
+.ptab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* HIERARCHY */
+#hier-toolbar{display:flex;align-items:center;gap:3px;padding:4px 6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--panel)}
+#hier-search{flex:1;background:var(--bg);border:1px solid var(--border);color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;padding:3px 6px;border-radius:3px;outline:none;min-width:0}
+#hier-search:focus{border-color:var(--accent)}
+#hier-search::placeholder{color:var(--muted)}
+.hier-tb-btn{background:none;border:1px solid var(--border);color:var(--muted);font-size:11px;width:22px;height:22px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;flex-shrink:0}
+.hier-tb-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.07)}
+.hier-tb-btn.red:hover{border-color:var(--red);color:var(--red);background:rgba(255,68,68,.07)}
+#hier-obj-count{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);padding:0 2px;flex-shrink:0;white-space:nowrap}
+.hier-list{flex:1;overflow-y:auto;padding:2px 0;user-select:none}
+.hier-list::-webkit-scrollbar{width:3px}
+.hier-list::-webkit-scrollbar-track{background:transparent}
+.hier-list::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.h-item{display:flex;align-items:center;gap:4px;padding:4px 6px;font-size:11px;cursor:pointer;border-left:2px solid transparent;transition:background .1s;position:relative;border-radius:0 3px 3px 0;overflow:hidden;min-width:0}
+.h-item:hover{background:var(--hover)}
+.h-item.sel{background:rgba(0,229,255,.1);border-left-color:var(--accent);color:var(--accent)}
+.h-item.sel .ico{color:var(--accent)}
+.h-item.multi-sel{background:rgba(68,187,255,.1);border-left-color:#44bbff;color:#88ddff}
+.h-item.drag-over{background:rgba(57,255,20,.12);border-left-color:var(--accent3)}
+.h-item.drag-src{opacity:.4}
+.h-item .h-arrow{font-size:9px;color:var(--muted);width:11px;flex-shrink:0;transition:transform .15s;text-align:center}
+.h-item .h-arrow.open{transform:rotate(0deg)}
+.h-item .h-arrow.closed{transform:rotate(-90deg)}
+.h-item .ico{font-size:10px;color:var(--muted);width:14px;flex-shrink:0;text-align:center;transition:color .1s}
+.h-item .h-name{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:'Share Tech Mono',monospace;font-size:10px;min-width:0}
+.h-item .h-actions{display:flex;align-items:center;gap:1px;opacity:0;transition:opacity .1s;flex-shrink:0;margin-left:auto}
+.h-item:hover .h-actions{opacity:1}
+.h-item.sel .h-actions{opacity:1}
+.h-action-btn{background:none;border:none;color:var(--muted);font-size:9px;width:16px;height:16px;border-radius:2px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .1s;padding:0;flex-shrink:0}
+.h-action-btn:hover{background:var(--border)}
+.h-action-btn.del:hover{color:var(--red)}
+.h-action-btn.vis-btn:hover{color:var(--accent)}
+.h-scene{font-size:9px;color:var(--muted);padding:3px 8px;letter-spacing:1px;font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);margin-bottom:2px;display:flex;align-items:center;gap:4px;background:rgba(0,229,255,.03)}
+.h-item-hidden .h-name{opacity:0.45}
+.h-item-hidden .ico{opacity:0.45}
+/* Context menu */
+#hier-ctx{position:fixed;z-index:9999;background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:3px 0;min-width:180px;box-shadow:0 8px 24px rgba(0,0,0,.5);font-family:'Share Tech Mono',monospace;font-size:11px;display:none}
+#hier-ctx .cm-item{padding:5px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;color:var(--text);white-space:nowrap}
+#hier-ctx .cm-item:hover{background:var(--hover);color:var(--accent)}
+#hier-ctx .cm-item.red:hover{color:var(--red)}
+#hier-ctx .cm-item .cm-ico{width:14px;text-align:center;font-size:11px}
+#hier-ctx .cm-item .cm-key{margin-left:auto;color:var(--muted);font-size:9px}
+#hier-ctx .cm-sep{height:1px;background:var(--border);margin:3px 0}
+.add-btn{margin:6px;background:none;border:1px dashed var(--border);color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:5px;cursor:pointer;border-radius:3px;transition:all .2s;width:calc(100% - 12px);letter-spacing:.5px}
+.add-btn:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.05)}
+
+/* ASSET panel */
+.asset-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:6px}
+.asset-item{background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px;cursor:pointer;text-align:center;font-size:10px;color:var(--muted);transition:all .15s}
+.asset-item:hover{border-color:var(--accent);color:var(--accent);background:rgba(0,229,255,.05)}
+.asset-item .ai{font-size:18px;display:block;margin-bottom:2px}
+.asset-cat-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Rajdhani',sans-serif;font-size:9px;font-weight:700;padding:3px 4px;border-radius:2px;cursor:pointer;transition:all .15s;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.asset-cat-btn:hover{border-color:var(--accent);color:var(--accent)}
+.asset-cat-btn.active{background:rgba(0,229,255,.1);border-color:var(--accent);color:var(--accent)}
+.asset-entity-item{display:flex;align-items:center;gap:8px;padding:6px 7px;border:1px solid var(--border);border-radius:4px;cursor:pointer;margin-bottom:3px;background:var(--panel2);transition:all .15s}
+.asset-entity-item:hover{background:rgba(255,255,255,.04);filter:brightness(1.1)}
+.ae-icon{font-size:20px;flex-shrink:0;width:26px;text-align:center}
+.ae-info{flex:1;min-width:0}
+.ae-name{font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;color:var(--text)}
+.ae-desc{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.asset-spawn-badge{font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);background:rgba(255,255,255,.05);border:1px solid var(--border);padding:2px 4px;border-radius:2px;white-space:nowrap;flex-shrink:0}
+.asset-section-label{padding:4px 8px 5px;font-size:8px;color:var(--accent3);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);margin-bottom:5px;letter-spacing:1.5px;text-transform:uppercase}
+.asset-model-item{display:flex;align-items:center;gap:6px;padding:5px 6px;border:1px solid var(--border);border-radius:3px;background:var(--panel2);cursor:pointer;transition:all .15s}
+.asset-model-item:hover{border-color:var(--accent2);background:rgba(255,107,53,.05)}
+.ami-name{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ami-spawn{background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--accent);font-size:9px;padding:1px 5px;border-radius:2px;cursor:pointer;font-family:'Share Tech Mono',monospace;white-space:nowrap}
+.ami-spawn:hover{background:rgba(0,229,255,.2)}
+
+/* TOOLBAR */
+#toolbar{height:34px;background:var(--panel);border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 8px;gap:4px;flex-shrink:0}
+.tool-btn{background:none;border:1px solid transparent;color:var(--muted);font-size:13px;width:26px;height:24px;border-radius:3px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:all .15s;font-family:'Share Tech Mono',monospace}
+.tool-btn:hover{background:var(--hover);color:var(--text);border-color:var(--border)}
+.tool-btn.active{background:rgba(0,229,255,.12);color:var(--accent);border-color:rgba(0,229,255,.3)}
+.tool-lbl{font-size:10px;color:var(--muted);font-family:'Share Tech Mono',monospace;margin-left:3px}
+.play-btn{margin-left:auto;background:var(--accent);color:#000;border:none;padding:3px 12px;border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;cursor:pointer;letter-spacing:1px;transition:all .2s}
+.play-btn:hover{background:#fff}
+.play-btn.playing{background:var(--accent2);color:#fff}
+
+/* Play mode — editor panellarni bloklash */
+body.play-mode #left-col,
+body.play-mode #right-col {
+  pointer-events: none;
+  opacity: 0.35;
+  transition: opacity 0.2s;
+}
+body.play-mode #topbar .menu-btn:not(#play-btn):not(#fullscreen-btn) {
+  pointer-events: none;
+  opacity: 0.35;
+}
+body.play-mode #toolbar {
+  pointer-events: none;
+  opacity: 0.35;
+}
+/* Play modeda canvas to'liq aktiv */
+body.play-mode #three-canvas {
+  cursor: crosshair;
+}
+.stop-btn{background:none;border:1px solid var(--muted);color:var(--muted);padding:3px 8px;border-radius:3px;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:600;cursor:pointer;transition:all .2s}
+.stop-btn:hover{border-color:var(--red);color:var(--red)}
+
+/* VIEWPORT */
+#cvp{flex:1;position:relative;overflow:hidden;background:#060810}
+#three-canvas{display:block;width:100%;height:100%}
+#fps-ov{position:absolute;top:8px;left:8px;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent3);background:rgba(0,0,0,.55);padding:3px 7px;border-radius:3px;border:1px solid rgba(57,255,20,.2);line-height:1.7;pointer-events:none}
+#mode-ov{position:absolute;top:8px;right:8px;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);background:rgba(0,0,0,.55);padding:3px 7px;border-radius:3px;text-align:right;line-height:1.7;pointer-events:none}
+#crosshair{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;display:none;color:rgba(255,255,255,.75);font-size:20px;line-height:1;text-shadow:0 0 6px rgba(0,229,255,.8)}
+#fps-grab-hint{position:absolute;top:calc(50% + 20px);left:50%;transform:translateX(-50%);pointer-events:none;display:none;font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);background:rgba(0,0,0,.6);padding:2px 8px;border-radius:2px;white-space:nowrap}
+#fps-held-lbl{position:absolute;top:calc(50% - 38px);left:50%;transform:translateX(-50%);pointer-events:none;display:none;font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent3);background:rgba(0,0,0,.7);padding:2px 10px;border-radius:2px;border:1px solid rgba(57,255,20,.3)}
+
+/* CONSOLE */
+#console-wrap{height:160px;background:var(--panel);border-top:1px solid var(--border);flex-shrink:0}
+#console-body{height:132px;overflow-y:auto;padding:3px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;line-height:1.65}
+.lg{color:var(--text)}.lw{color:#ffcc00}.le{color:var(--red)}.lok{color:var(--accent3)}
+.lt{color:var(--muted);margin-right:6px}
+
+/* TIMELINE */
+#timeline-panel{display:none;height:160px;overflow:hidden;flex-direction:column}
+#tl-toolbar{height:28px;display:flex;align-items:center;gap:3px;padding:0 6px;border-bottom:1px solid var(--border);flex-shrink:0;flex-wrap:nowrap}
+.tl-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 6px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.tl-btn:hover{border-color:var(--accent);color:var(--accent)}
+.tl-btn.active{background:rgba(0,229,255,.12);color:var(--accent);border-color:rgba(0,229,255,.4)}
+.tl-btn.vis{border-color:rgba(204,136,255,.3);color:var(--accent4)}
+.tl-btn.vis:hover{border-color:var(--accent4);color:var(--accent4)}
+#tl-ease-select{font-family:'Share Tech Mono',monospace;font-size:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:2px;outline:none;cursor:pointer}
+#tl-time-lbl{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent);margin-left:2px;min-width:46px}
+#tl-dur-inp{width:34px;font-family:'Share Tech Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1px 3px;border-radius:2px;outline:none}
+#tl-body{flex:1;overflow:hidden;position:relative;display:flex;flex-direction:column}
+#tl-scrubber-row{height:18px;position:relative;background:var(--panel2);border-bottom:1px solid var(--border);cursor:col-resize;flex-shrink:0}
+#tl-playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent2);pointer-events:none;z-index:5}
+#tl-playhead::before{content:'▼';position:absolute;top:-1px;left:-4px;font-size:9px;color:var(--accent2)}
+.tl-tick{position:absolute;top:0;bottom:0;width:1px;background:var(--border)}
+.tl-tick-lbl{position:absolute;top:2px;font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted)}
+#tl-tracks{flex:1;overflow-y:auto;overflow-x:hidden;position:relative}
+.tl-track{height:22px;display:flex;align-items:center;border-bottom:1px solid var(--border);position:relative}
+.tl-track-lbl{width:90px;font-family:'Share Tech Mono',monospace;font-size:9px;padding:0 5px;flex-shrink:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:flex;align-items:center;gap:3px}
+.tl-track-lbl .tl-track-type{font-size:8px;padding:0 3px;border-radius:2px;flex-shrink:0}
+.tl-track-type-snd{background:rgba(57,255,20,.12);color:var(--accent3)}
+.tl-kf-snd{position:absolute;top:50%;transform:translate(-50%,-50%);width:14px;height:14px;border-radius:50%;background:var(--accent3);border:1.5px solid rgba(255,255,255,.8);cursor:pointer;z-index:3;display:flex;align-items:center;justify-content:center;font-size:8px;color:#000;line-height:1;transition:transform .1s}
+.tl-kf-snd::after{content:'♪';pointer-events:none}
+.tl-kf-snd:hover{transform:translate(-50%,-50%) scale(1.35);background:#fff}
+.tl-kf-snd.selected{box-shadow:0 0 6px var(--accent3);border-color:var(--accent3)}
+#tl-snd-popup{position:fixed;background:var(--panel);border:1px solid var(--accent3);border-radius:5px;padding:8px 10px;z-index:9999;font-family:'Share Tech Mono',monospace;font-size:10px;display:none;min-width:180px;box-shadow:0 4px 14px rgba(0,0,0,.7)}
+#tl-snd-popup .sp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:4px 0}
+#tl-snd-popup .sp-lbl{color:var(--muted);font-size:9px;flex-shrink:0}
+.tl-track-type-rot{background:rgba(255,107,53,.12);color:var(--accent2)}
+.tl-track-type-vis{background:rgba(204,136,255,.12);color:var(--accent4)}
+.tl-track-lane{flex:1;position:relative;height:100%;cursor:pointer}
+/* Easing color on segment */
+.tl-segment{position:absolute;top:4px;bottom:4px;background:rgba(0,229,255,.12);border-left:2px solid var(--accent);border-right:2px solid var(--accent);pointer-events:none}
+.tl-segment.ease-linear{background:rgba(0,229,255,.08)}
+.tl-segment.ease-smooth{background:rgba(57,255,20,.08);border-color:var(--accent3)}
+.tl-segment.ease-bounce{background:rgba(255,107,53,.1);border-color:var(--accent2)}
+.tl-segment.ease-elastic{background:rgba(204,136,255,.1);border-color:var(--accent4)}
+.tl-segment.ease-back{background:rgba(255,204,0,.08);border-color:#ffcc00}
+/* Keyframe diamond */
+.tl-kf{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:8px;height:8px;background:var(--accent);border:1px solid #fff;cursor:pointer;z-index:3}
+.tl-kf:hover{background:#fff;transform:translate(-50%,-50%) rotate(45deg) scale(1.3)}
+.tl-kf.selected{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 4px var(--accent2)}
+.tl-kf.ease-linear{background:#88aacc}
+.tl-kf.ease-smooth{background:var(--accent3)}
+.tl-kf.ease-bounce{background:var(--accent2)}
+.tl-kf.ease-elastic{background:var(--accent4)}
+.tl-kf.ease-back{background:#ffcc00}
+/* Visibility keyframe — circle shape */
+.tl-kf-vis{position:absolute;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;border:2px solid var(--accent4);cursor:pointer;z-index:3}
+.tl-kf-vis.vis-on{background:var(--accent4)}
+.tl-kf-vis.vis-off{background:transparent}
+.tl-kf-vis:hover{transform:translate(-50%,-50%) scale(1.3)}
+.tl-kf-vis.selected{box-shadow:0 0 5px var(--accent4)}
+/* Tangent handle */
+.tl-tangent{position:absolute;top:50%;width:5px;height:5px;background:#ffcc00;border:1px solid #fff;border-radius:50%;cursor:ew-resize;z-index:4;transform:translateY(-50%)}
+/* KF tooltip popup */
+#tl-kf-popup{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 10px;z-index:9999;font-family:'Share Tech Mono',monospace;font-size:10px;display:none;min-width:130px;box-shadow:0 4px 12px rgba(0,0,0,.6)}
+#tl-kf-popup .kfp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0}
+#tl-kf-popup .kfp-label{color:var(--muted);font-size:9px}
+#tl-kf-popup select{font-family:'Share Tech Mono',monospace;font-size:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1px 3px;border-radius:2px;outline:none;cursor:pointer}
+
+/* COL RESIZERS */
+.col-resizer{width:4px;background:var(--border);cursor:col-resize;flex-shrink:0;transition:background .15s;position:relative;z-index:10}
+.col-resizer:hover,.col-resizer.dragging{background:var(--accent)}
+.col-resizer::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:2px;height:20px;background:currentColor;border-radius:1px;opacity:.5}
+#left-col.collapsed,#right-col.collapsed{width:0!important;overflow:hidden;border:none}
+#left-col,#right-col,#center-col{transition:none}
+
+/* SCRIPT EDITOR */
+.script-api-tag{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--accent);background:rgba(0,229,255,.07);border:1px solid rgba(0,229,255,.15);padding:1px 5px;border-radius:2px;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .15s}
+.script-api-tag:hover{background:rgba(0,229,255,.18);border-color:var(--accent)}
+#script-editor::selection{background:rgba(0,229,255,.25)}
+#script-editor::-webkit-scrollbar{width:4px}
+
+/* PHYSICS PANEL */
+#physics-panel{display:none;padding:8px;overflow-y:auto}
+
+/* CONSOLE WRAP height resize handle */
+#console-resize-handle{height:4px;background:var(--border);cursor:row-resize;flex-shrink:0;transition:background .15s}
+#console-resize-handle:hover{background:var(--accent)}
+
+#curve-editor-panel{display:none;flex-shrink:0;border-top:1px solid var(--border);background:var(--panel2);flex-direction:column}
+#curve-editor-header{height:26px;display:flex;align-items:center;padding:0 8px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0;cursor:pointer;user-select:none}
+#curve-editor-header:hover{background:var(--hover)}
+#curve-editor-title{font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent4);letter-spacing:1px;flex:1}
+#curve-editor-close{font-size:11px;color:var(--muted);cursor:pointer;padding:0 4px}
+#curve-editor-close:hover{color:var(--red)}
+#curve-editor-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px}
+#curve-canvas-wrap{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden;cursor:crosshair}
+#curve-canvas{display:block}
+/* Easing preset buttons in curve editor */
+.ce-ease-row{display:flex;gap:3px;flex-wrap:wrap}
+.ce-ease-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 7px;border-radius:2px;cursor:pointer;transition:all .15s;flex:1;min-width:50px;text-align:center}
+.ce-ease-btn:hover{border-color:var(--accent4);color:var(--accent4)}
+.ce-ease-btn.active{background:rgba(204,136,255,.15);border-color:var(--accent4);color:var(--accent4)}
+.ce-info{font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);text-align:center;line-height:1.6}
+.ce-track-tabs{display:flex;gap:3px;margin-bottom:2px}
+.ce-tab{font-family:'Share Tech Mono',monospace;font-size:9px;padding:2px 8px;border-radius:2px;border:1px solid var(--border);cursor:pointer;color:var(--muted);transition:all .15s}
+.ce-tab:hover{color:var(--text)}
+.ce-tab.active{background:rgba(0,229,255,.1);border-color:var(--accent);color:var(--accent)}
+.ce-tab.vis-tab.active{background:rgba(204,136,255,.1);border-color:var(--accent4);color:var(--accent4)}
+
+.comp-block{border-bottom:1px solid var(--border);padding:7px 9px}
+.comp-title{font-size:10px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);display:flex;align-items:center;gap:5px;margin-bottom:5px;cursor:pointer}
+.comp-title .tag{font-size:8px;padding:1px 4px;background:rgba(0,229,255,.1);color:var(--accent);border-radius:2px;letter-spacing:.3px}
+.comp-title .tag2{background:rgba(204,136,255,.1);color:var(--accent4)}
+.comp-title .tag3{background:rgba(255,107,53,.1);color:var(--accent2)}
+.comp-title .tag4{background:rgba(57,255,20,.1);color:var(--accent3)}
+.fr{display:flex;align-items:center;margin:3px 0;gap:5px}
+.fl{font-size:10px;color:var(--muted);width:52px;flex-shrink:0;font-family:'Share Tech Mono',monospace}
+.fv{font-size:11px;font-family:'Share Tech Mono',monospace;color:var(--text);background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;flex:1;width:0;outline:none;transition:border-color .15s}
+.fv:focus{border-color:var(--accent);color:var(--accent)}
+.xyzr{display:flex;gap:3px}
+.xi{flex:1;width:50px;font-size:10px;font-family:'Share Tech Mono',monospace;background:var(--bg);border:1px solid var(--border);border-radius:2px;padding:2px 4px;color:var(--text);outline:none;transition:border-color .15s}
+.xi:focus{border-color:var(--accent);color:var(--accent)}
+.xl{font-size:9px;color:var(--muted);text-align:center;margin-top:1px;font-family:'Share Tech Mono',monospace}
+.action-btn{width:100%;margin-bottom:4px;background:rgba(0,229,255,.06);border:1px solid rgba(0,229,255,.18);color:var(--accent);padding:4px;border-radius:3px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;letter-spacing:.5px;transition:all .15s}
+.action-btn:hover{background:rgba(0,229,255,.15)}
+.del-btn{background:rgba(255,68,68,.06);border-color:rgba(255,68,68,.18);color:var(--red)}
+.del-btn:hover{background:rgba(255,68,68,.15)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;margin:3px 0}
+.tgl{position:relative;width:28px;height:15px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0;position:absolute}
+.tgl-track{position:absolute;inset:0;background:var(--border);border-radius:8px;transition:background .2s;cursor:pointer}
+.tgl input:checked+.tgl-track{background:var(--accent)}
+.tgl-thumb{position:absolute;top:2px;left:2px;width:11px;height:11px;background:#fff;border-radius:50%;transition:transform .2s;pointer-events:none}
+.tgl input:checked~.tgl-thumb{transform:translateX(13px)}
+
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* GIZMO hover highlight */
+#gizmo-x:hover line, #gizmo-x.drag line{stroke:#ff8888;stroke-width:3.5}
+#gizmo-y:hover line, #gizmo-y.drag line{stroke:#88ff88;stroke-width:3.5}
+#gizmo-z:hover line, #gizmo-z.drag line{stroke:#88aaff;stroke-width:3.5}
+
+/* ROTATE RINGS hover */
+#rot-ring-y:hover #rot-y-ellipse{stroke:#66eeff;stroke-width:4;filter:drop-shadow(0 0 5px #00ccff)}
+#rot-ring-x:hover #rot-x-ellipse{stroke:#aaffaa;stroke-width:4;filter:drop-shadow(0 0 5px #44ff44)}
+#rot-ring-z:hover #rot-z-ellipse{stroke:#ffee44;stroke-width:4;filter:drop-shadow(0 0 5px #ffdd00)}
+
+/* Screenshot flash */
+@keyframes ssFlash{0%{opacity:.8}100%{opacity:0}}
+#ss-flash{position:fixed;inset:0;background:#fff;pointer-events:none;opacity:0;z-index:99999}
+
+/* GLTF import drop zone */
+#gltf-drop{position:absolute;inset:0;background:rgba(0,229,255,.07);border:2px dashed var(--accent);z-index:50;display:none;align-items:center;justify-content:center;font-size:18px;color:var(--accent);font-weight:700;letter-spacing:2px;flex-direction:column;gap:8px}
+
+/* Undo/Redo toast */
+#undo-toast{position:fixed;bottom:120px;left:50%;transform:translateX(-50%);background:var(--panel);border:1px solid var(--accent);color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:11px;padding:5px 14px;border-radius:3px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+
+/* Material editor extra fields */
+.fv-color{width:22px;height:20px;border:1px solid var(--border);border-radius:2px;cursor:pointer;background:none;padding:0}
+
+/* Nested hierarchy */
+.h-item.depth-1{padding-left:28px}
+.h-item.depth-2{padding-left:42px}
+.h-item.depth-3{padding-left:56px}
+.h-item .nest-line{position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--border)}
+.h-item.sel .nest-line{background:var(--accent)}
+
+/* Physics mode badges */
+.phys-badge{display:inline-block;font-size:8px;padding:1px 5px;border-radius:2px;font-family:'Share Tech Mono',monospace;font-weight:700;letter-spacing:.5px;margin-left:4px}
+.pb-solid{background:rgba(0,229,255,.12);color:var(--accent)}
+.pb-jelly{background:rgba(57,255,20,.12);color:var(--accent3)}
+.pb-liquid{background:rgba(0,100,255,.18);color:#66aaff}
+.pb-break{background:rgba(255,68,68,.12);color:var(--red)}
+.pb-cloth{background:rgba(204,136,255,.12);color:var(--accent4)}
+
+/* Deform panel */
+.deform-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:4px 0}
+.deform-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);padding:5px 4px;border-radius:3px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;transition:all .15s;text-align:center}
+.deform-btn:hover{border-color:var(--accent4);color:var(--accent4);background:rgba(204,136,255,.08)}
+.deform-btn.active-mode{border-color:var(--accent3);color:var(--accent3);background:rgba(57,255,20,.08)}
+
+/* HAMBURGER MENU */
+#ham-btn{background:none;border:1px solid var(--border);border-radius:4px;width:30px;height:26px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;transition:border-color .15s,background .15s;flex-shrink:0}
+#ham-btn span{display:block;width:14px;height:1.5px;background:var(--muted);border-radius:1px;transition:background .15s}
+#ham-btn:hover{border-color:var(--accent);background:rgba(0,229,255,.07)}
+#ham-btn:hover span,#ham-btn.open span{background:var(--accent)}
+#ham-btn.open{border-color:var(--accent);background:rgba(0,229,255,.07)}
+#ham-menu{display:none;position:absolute;right:0;top:calc(100% + 6px);background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:6px 4px;min-width:170px;z-index:9999;box-shadow:0 6px 24px rgba(0,0,0,.5);flex-direction:column;gap:1px}
+#ham-menu.open{display:flex}
+.ham-item{background:none;border:none;color:var(--text);font-family:'Share Tech Mono',monospace;font-size:10px;padding:6px 10px;text-align:left;cursor:pointer;border-radius:3px;transition:background .1s,color .1s;display:flex;align-items:center;gap:7px;white-space:nowrap;width:100%}
+.ham-item:hover{background:rgba(0,229,255,.1);color:var(--accent)}
+.ham-section-title{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted);padding:4px 10px 2px;text-transform:uppercase}
+.ham-sep{height:1px;background:var(--border);margin:4px 6px}
+
+
+.cam-mode-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:"Share Tech Mono",monospace;font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.cam-mode-btn:hover{border-color:var(--accent4);color:var(--accent4)}
+.cam-mode-btn.active{background:rgba(204,136,255,.15);border-color:var(--accent4);color:var(--accent4)}
+.cam-tool-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:"Share Tech Mono",monospace;font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.cam-tool-btn:hover{border-color:var(--accent);color:var(--accent)}
+.cam-sec-title{font-family:"Share Tech Mono",monospace;font-size:9px;letter-spacing:1px;color:var(--muted);text-transform:uppercase;margin-bottom:4px;margin-top:2px}
+.cam-field-row{display:flex;align-items:center;gap:4px;margin:3px 0}
+.cam-lbl{font-family:"Share Tech Mono",monospace;font-size:9px;color:var(--muted);width:46px;flex-shrink:0}
+.cam-val{font-family:"Share Tech Mono",monospace;font-size:9px;color:var(--accent);min-width:24px;text-align:right}
+.cam-num{font-family:"Share Tech Mono",monospace;font-size:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:1px 4px;border-radius:2px;outline:none}
+.cam-kf{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:8px;height:8px;background:var(--accent4);border:1px solid #fff;cursor:pointer;z-index:3}
+.cam-kf:hover{background:#fff}
+.cam-kf.selected{background:var(--accent2);border-color:var(--accent2)}
+
+/* ═══ UI UTILITY CLASSES ═══════════════════════════════ */
+.ui-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border-radius:8px;padding:14px 16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.85);font-family:'Rajdhani',sans-serif}
+.ui-modal-scroll{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border-radius:8px;padding:14px 16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.85);font-family:'Rajdhani',sans-serif;max-height:80vh;overflow-y:auto}
+.ui-popup{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:5px 0;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.7);font-family:'Share Tech Mono',monospace}
+.ui-menu-item{display:block;width:100%;background:none;border:none;color:var(--text);padding:7px 14px;cursor:pointer;font-family:'Rajdhani',sans-serif;font-size:13px;font-weight:600;text-align:left;transition:background .1s}
+.ui-menu-item:hover{background:var(--hover)}
+.ui-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;display:flex;align-items:center;justify-content:center}
+.ui-section-label{padding:5px 14px;font-size:9px;color:var(--accent3);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);margin-bottom:3px;letter-spacing:1px}
+.ui-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
+
+.asset-lib-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:border-color .15s}
+.asset-lib-item:hover{border-color:var(--accent)}
+/* ═══════════════════════════════════════════════════════ */
+</style>
+<!-- TOP BAR -->
+<div id="topbar">
+  <div class="logo">APEX<span>3D</span><sub>v2.5</sub></div>
+  <div class="sep"></div>
+  <button class="menu-btn" onclick="showLangMenu(this)">🌐 Til</button>
+  <button class="menu-btn" onclick="saveScene()">💾 Saqlash</button>
+  <button class="menu-btn" onclick="loadScene()">📂 Yuklash</button>
+  <button class="menu-btn" onclick="importGLTF()">📦 Import GLB/GLTF</button>
+  <div class="sep"></div>
+  <button class="menu-btn" onclick="undo()">↩ Bekor</button>
+  <button class="menu-btn" onclick="redo()">↪ Qayta</button>
+  <button class="menu-btn" onclick="takeScreenshot()">📸 Screenshot</button>
+  <button class="menu-btn" id="fullscreen-btn" onclick="toggleFullscreen()" title="To'liq ekran (F11)">⛶ Fullscreen</button>
+  <div class="spacer"></div>
+  <!-- HAMBURGER MENU -->
+  <div id="ham-wrap" style="position:relative;flex-shrink:0">
+    <button id="ham-btn" onclick="toggleHamMenu()" title="Qo'shimcha vositalar">
+      <span></span><span></span><span></span>
+    </button>
+    <div id="ham-menu">
+      <div class="ham-section-title">SAHNA</div>
+      <button class="ham-item" onclick="toggleSkybox();closeHamMenu()">🌌 Skybox</button>
+      <button class="ham-item" onclick="showFogPanel();closeHamMenu()">🌫 Tuman</button>
+      <button class="ham-item" onclick="setBgImage();closeHamMenu()">🖼 Fon Rasm</button>
+      <button class="ham-item" onclick="addLight();closeHamMenu()">💡 Yorug'lik</button>
+      <button class="ham-item" onclick="addParticles();closeHamMenu()">✨ Zarrachalar</button>
+      <button class="ham-item" onclick="importBlenderAnim();closeHamMenu()">🎬 Blender Anim</button>
+      <div class="ham-sep"></div>
+      <div class="ham-section-title">MODULLAR</div>
+      <!-- Dinamik tugmalar shu yerga qo'shiladi -->
+      <button class="ham-item" onclick="SoundSystem.showPanel();closeHamMenu()">🔊 Ovoz Tizimi</button>
+    </div>
+  </div>
+  <div class="sep"></div>
+  <div class="tstat">FPS:<span class="v" id="fps-s">60</span></div><div class="sep"></div>
+  <div class="tstat">Poly:<span class="v" id="poly-s">0</span></div><div class="sep"></div>
+  <div class="tstat">Obj:<span class="v" id="obj-s">0</span></div><div class="sep"></div>
+  <div class="tstat">Fizika:<span class="v" id="phys-s">ON</span></div><div class="sep"></div>
+  <div class="tstat" id="snap-status-lbl" style="color:var(--muted);display:flex;align-items:center;gap:4px">🧲 Snap:<span style="color:var(--muted)" id="snap-status-v">OFF</span><input id="snap-size-input" type="number" min="0.1" max="100" step="0.1" value="0.5" style="width:44px;background:var(--panel2);border:1px solid var(--border);color:var(--accent3);font-family:'Share Tech Mono',monospace;font-size:10px;padding:1px 3px;border-radius:2px;text-align:center;display:none" oninput="EditorTools.snapGrid=Math.max(0.1,parseFloat(this.value)||0.5);const sv=document.getElementById('snap-status-v');if(sv&&EditorTools.snapEnabled){sv.textContent=EditorTools.snapGrid.toFixed(1)+'m'}"></div><div class="sep"></div>
+  <div class="tstat" id="render-backend-lbl" style="color:var(--accent3);font-size:9px">WebGL2</div>
+</div>
+
+<div id="main">
+<!-- LEFT -->
+<div id="left-col">
+  <div class="panel-tabs">
+    <div class="ptab active" onclick="switchLeftTab('hier',this)">IERARXIYA</div>
+    <div class="ptab" onclick="switchLeftTab('assets',this)">ASSETLAR</div>
+  </div>
+  <div id="tab-hier" style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+    <div id="hier-toolbar">
+      <input id="hier-search" type="text" placeholder="🔍 Qidirish..." oninput="hierFilter(this.value)" autocomplete="off" spellcheck="false">
+      <button class="hier-tb-btn" title="Papka yaratish (Ctrl+F)" onclick="hierCtxAction('folder')">📁</button>
+      <button class="hier-tb-btn" title="Nusxalash (Ctrl+D)" onclick="hierCtxAction('duplicate')">⧉</button>
+      <button class="hier-tb-btn red" title="O'chirish (Del)" onclick="hierCtxAction('delete')">✕</button>
+    </div>
+    <div class="hier-list" id="hier-list"></div>
+    <button class="add-btn" id="add-obj-btn">＋ Obyekt qo'shish</button>
+  </div>
+  <div id="tab-assets" style="display:none;flex-direction:column;flex:1;overflow:hidden">
+    <!-- Category tabs — 2 qator -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:4px;border-bottom:1px solid var(--border);flex-shrink:0">
+      <button class="asset-cat-btn active" onclick="assetShowCat('primitives',this)">📦 Shakl</button>
+      <button class="asset-cat-btn" onclick="assetShowCat('entities',this)">🎮 Entity</button>
+      <button class="asset-cat-btn" onclick="assetShowCat('blocks',this)">🧱 Bloklar</button>
+      <button class="asset-cat-btn" onclick="assetShowCat('functional',this)">⚙ Funksional</button>
+      <button class="asset-cat-btn" onclick="assetShowCat('prefabs',this)">⭐ Prefab</button>
+      <button class="asset-cat-btn" onclick="assetShowCat('models',this)">🗂 Model</button>
+    </div>
+
+    <!-- Scroll container -->
+    <div style="flex:1;overflow-y:auto">
+
+    <!-- ═══ PRIMITIVES ═══ -->
+    <div id="asset-cat-primitives" class="asset-grid"></div>
+
+    <!-- ═══ ENTITIES ═══ -->
+    <div id="asset-cat-entities" style="display:none;padding:4px">
+      <div class="asset-section-label">HARAKATLANUVCHI ENTITYLAR</div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('player')">
+        <span class="ae-icon">🧍</span>
+        <div class="ae-info"><div class="ae-name">Oyinchi</div><div class="ae-desc">FPS/3rd person, WASD+Space</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)">SPAWN</div>
+      </div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('car')">
+        <span class="ae-icon">🚗</span>
+        <div class="ae-info"><div class="ae-name">Mashina</div><div class="ae-desc">4 g'ildirak, WASD haydash, E kirish</div></div>
+        <div class="asset-spawn-badge" style="color:#ff6b35;border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.08)">SPAWN</div>
+      </div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('animal')">
+        <span class="ae-icon">🐕</span>
+        <div class="ae-info"><div class="ae-name">Hayvon</div><div class="ae-desc">AI patrol → follow → idle</div></div>
+        <div class="asset-spawn-badge" style="color:#aa7744;border-color:rgba(170,119,68,.3);background:rgba(170,119,68,.08)">SPAWN</div>
+      </div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('npc')">
+        <span class="ae-icon">🤖</span>
+        <div class="ae-info"><div class="ae-name">NPC</div><div class="ae-desc">Dialog, quest, dushman</div></div>
+        <div class="asset-spawn-badge" style="color:#4488ff;border-color:rgba(68,136,255,.3);background:rgba(68,136,255,.08)">SPAWN</div>
+      </div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('item')">
+        <span class="ae-icon">⭐</span>
+        <div class="ae-info"><div class="ae-name">Buyum</div><div class="ae-desc">Yig'ish, trigger, collectible</div></div>
+        <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.08)">SPAWN</div>
+      </div>
+      <div class="asset-entity-item" onclick="assetSpawnEntity('camera')">
+        <span class="ae-icon">🎥</span>
+        <div class="ae-info"><div class="ae-name">Kamera</div><div class="ae-desc">Cinematic, fixed, follow kamera</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent4);border-color:rgba(204,136,255,.3);background:rgba(204,136,255,.08)">SPAWN</div>
+      </div>
+    </div>
+
+    <!-- ═══ BLOCKS ═══ -->
+    <div id="asset-cat-blocks" style="display:none;padding:6px">
+      <div class="asset-section-label">MUHIT BLOKLARI</div>
+      <!-- Platforma -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('platform')" style="border-color:rgba(0,229,255,.25)">
+        <span class="ae-icon">🟦</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Platforma</div><div class="ae-desc">Tekis yuzali qadam blok</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)">SPAWN</div>
+      </div>
+      <!-- Devor -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('wall')" style="border-color:rgba(200,212,224,.2)">
+        <span class="ae-icon">🧱</span>
+        <div class="ae-info"><div class="ae-name">Devor</div><div class="ae-desc">Vertikal to'siq blok</div></div>
+        <div class="asset-spawn-badge">SPAWN</div>
+      </div>
+      <!-- Zina -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('stair')" style="border-color:rgba(255,204,0,.25)">
+        <span class="ae-icon">🪜</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Zina</div><div class="ae-desc">3 pog'onali chiqish bloki</div></div>
+        <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.08)">SPAWN</div>
+      </div>
+      <!-- Ko'prik -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('bridge')" style="border-color:rgba(255,107,53,.25)">
+        <span class="ae-icon">🌉</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ff6b35">Ko'prik</div><div class="ae-desc">Uzun tor o'tish yo'li</div></div>
+        <div class="asset-spawn-badge" style="color:#ff6b35;border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.08)">SPAWN</div>
+      </div>
+      <!-- Ustun -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('pillar')" style="border-color:rgba(200,212,224,.2)">
+        <span class="ae-icon">🏛</span>
+        <div class="ae-info"><div class="ae-name">Ustun</div><div class="ae-desc">Vertikal silindr ustun</div></div>
+        <div class="asset-spawn-badge">SPAWN</div>
+      </div>
+      <!-- Rampa -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('ramp')" style="border-color:rgba(57,255,20,.25)">
+        <span class="ae-icon">📐</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Rampa</div><div class="ae-desc">Qiyalik, avtomobil va yugurish</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.3);background:rgba(57,255,20,.08)">SPAWN</div>
+      </div>
+      <!-- To'siq -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('barrier')" style="border-color:rgba(255,68,68,.25)">
+        <span class="ae-icon">🚧</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--red)">To'siq</div><div class="ae-desc">Yo'l to'suvchi barrier blok</div></div>
+        <div class="asset-spawn-badge" style="color:var(--red);border-color:rgba(255,68,68,.3);background:rgba(255,68,68,.08)">SPAWN</div>
+      </div>
+      <!-- Maydon -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('ground')" style="border-color:rgba(100,180,100,.25)">
+        <span class="ae-icon">🟩</span>
+        <div class="ae-info"><div class="ae-name" style="color:#66bb66">Maydon</div><div class="ae-desc">Katta tekis zamin parcha</div></div>
+        <div class="asset-spawn-badge" style="color:#66bb66;border-color:rgba(100,180,100,.3);background:rgba(100,180,100,.08)">SPAWN</div>
+      </div>
+      <!-- Quti -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('crate')" style="border-color:rgba(180,130,60,.3)">
+        <span class="ae-icon">📦</span>
+        <div class="ae-info"><div class="ae-name" style="color:#b48232">Yashik (Crate)</div><div class="ae-desc">Fizikali og'ir yashik</div></div>
+        <div class="asset-spawn-badge" style="color:#b48232;border-color:rgba(180,130,60,.3);background:rgba(180,130,60,.08)">SPAWN</div>
+      </div>
+      <!-- Bochka -->
+      <div class="asset-entity-item" onclick="spawnSceneBlock('barrel')" style="border-color:rgba(180,100,50,.3)">
+        <span class="ae-icon">🛢</span>
+        <div class="ae-info"><div class="ae-name" style="color:#b46432">Bochka</div><div class="ae-desc">Aylanuvchi silindr bochka</div></div>
+        <div class="asset-spawn-badge" style="color:#b46432;border-color:rgba(180,100,50,.3);background:rgba(180,100,50,.08)">SPAWN</div>
+      </div>
+    </div>
+
+    <!-- ═══ FUNCTIONAL BLOCKS ═══ -->
+    <div id="asset-cat-functional" style="display:none;padding:6px">
+      <div class="asset-section-label">O'YIN MEXANIKALARI</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">
+        Sahnaqa qo'shing → scriptda avtomatik ishlaydi
+      </div>
+      <!-- Checkpoint -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('checkpoint')" style="border-color:rgba(57,255,20,.3)">
+        <span class="ae-icon" style="font-size:22px">🚩</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Checkpoint</div><div class="ae-desc">Oyinchi tegsa progress saqlanadi</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.25);background:rgba(57,255,20,.08)">SPAWN</div>
+      </div>
+      <!-- Spawn Block -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('spawnblock')" style="border-color:rgba(0,229,255,.3)">
+        <span class="ae-icon" style="font-size:22px">📍</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Spawn Block</div><div class="ae-desc">Oyinchi tug'ilish / qayta tug'ilish</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.25);background:rgba(0,229,255,.08)">SPAWN</div>
+      </div>
+      <!-- Damage Block -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('damageblock')" style="border-color:rgba(255,68,68,.3)">
+        <span class="ae-icon" style="font-size:22px">💥</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--red)">Damage Block</div><div class="ae-desc">Teggan o'yinchiga zarar beradi</div></div>
+        <div class="asset-spawn-badge" style="color:var(--red);border-color:rgba(255,68,68,.25);background:rgba(255,68,68,.08)">SPAWN</div>
+      </div>
+      <!-- Teleport Block -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('teleportblock')" style="border-color:rgba(204,136,255,.3)">
+        <span class="ae-icon" style="font-size:22px">🌀</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent4)">Teleport Block</div><div class="ae-desc">Oyinchini boshqa nuqtaga ko'chiradi</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent4);border-color:rgba(204,136,255,.25);background:rgba(204,136,255,.08)">SPAWN</div>
+      </div>
+      <!-- Win Zone -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('winzone')" style="border-color:rgba(255,204,0,.3)">
+        <span class="ae-icon" style="font-size:22px">🏆</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Win Zone</div><div class="ae-desc">Oyinchini g'alaba zonasiga olib kiradi</div></div>
+        <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.25);background:rgba(255,204,0,.08)">SPAWN</div>
+      </div>
+      <!-- Kill Zone -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('killzone')" style="border-color:rgba(255,30,30,.3)">
+        <span class="ae-icon" style="font-size:22px">☠️</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ff2222">Kill Zone</div><div class="ae-desc">Tushsa darhol o'lim, respawn</div></div>
+        <div class="asset-spawn-badge" style="color:#ff2222;border-color:rgba(255,30,30,.25);background:rgba(255,30,30,.08)">SPAWN</div>
+      </div>
+      <!-- Speed Boost -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('speedboost')" style="border-color:rgba(57,255,20,.25)">
+        <span class="ae-icon" style="font-size:22px">⚡</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Speed Boost</div><div class="ae-desc">O'yinchi tezligini oshiradi</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.25);background:rgba(57,255,20,.08)">SPAWN</div>
+      </div>
+      <!-- Coin / Score -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('coin')" style="border-color:rgba(255,204,0,.25)">
+        <span class="ae-icon" style="font-size:22px">🪙</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Tanga (Coin)</div><div class="ae-desc">Yig'ilganda ball qo'shadi</div></div>
+        <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.25);background:rgba(255,204,0,.08)">SPAWN</div>
+      </div>
+      <!-- Moving Platform -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('movingplatform')" style="border-color:rgba(0,229,255,.2)">
+        <span class="ae-icon" style="font-size:22px">↔️</span>
+        <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Harakatlanuvchi Platforma</div><div class="ae-desc">Oldinga-orqaga siljiydi</div></div>
+        <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.25);background:rgba(0,229,255,.08)">SPAWN</div>
+      </div>
+      <!-- Spring / Jump Pad -->
+      <div class="asset-entity-item" onclick="spawnFunctionalBlock('jumppad')" style="border-color:rgba(255,107,53,.3)">
+        <span class="ae-icon" style="font-size:22px">🟠</span>
+        <div class="ae-info"><div class="ae-name" style="color:#ff6b35">Jump Pad</div><div class="ae-desc">Oyinchini havoga otadi</div></div>
+        <div class="asset-spawn-badge" style="color:#ff6b35;border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.08)">SPAWN</div>
+      </div>
+    </div>
+
+    <!-- ═══ PREFABS ═══ -->
+    <div id="asset-cat-prefabs" style="display:none;padding:6px">
+      <div class="asset-section-label">SAQLANGAN PREFABLAR</div>
+      <div style="display:flex;gap:4px;margin-bottom:6px">
+        <button onclick="prefabSaveSelected()" style="flex:1;background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.3);color:#ffcc00;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px;border-radius:3px;cursor:pointer">
+          💾 Prefab saqlash
+        </button>
+        <button onclick="prefabImport()" title="JSON fayldan import" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:14px;padding:4px 8px;border-radius:3px;cursor:pointer">
+          📥
+        </button>
+      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">
+        Tanlangan objectni prefab sifatida saqlang.<br>Bolalar, materiallar va script saqlanadi.
+      </div>
+      <div id="prefab-list" style="display:flex;flex-direction:column;gap:3px"></div>
+    </div>
+
+    <!-- ═══ MODELS ═══ -->
+    <div id="asset-cat-models" style="display:none;padding:6px">
+      <div class="asset-section-label">GLB / GLTF MODELLAR</div>
+      <button onclick="assetImportGLB()" style="width:100%;background:rgba(0,229,255,.07);border:1px dashed rgba(0,229,255,.3);color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;padding:10px;border-radius:4px;cursor:pointer;margin-bottom:6px">
+        📂 GLB / GLTF Yuklash
+      </button>
+      <div id="asset-model-list" style="display:flex;flex-direction:column;gap:3px"></div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-top:8px;line-height:1.8;padding:6px;background:rgba(0,0,0,.2);border-radius:3px;border:1px solid var(--border)">
+        Model sahnaga tushgach:<br>
+        ▸ Siljitish / aylantirish mumkin<br>
+        ▸ Script berish mumkin<br>
+        ▸ O'yin rejimida ishlaydi<br>
+        ▸ Animatsiyalar avtomatik yuklanadi
+      </div>
+    </div>
+
+    </div><!-- /scroll container -->
+  </div>
+</div>
+<div class="col-resizer" id="left-resizer" title="Tortib o'lchov o'zgartir"></div>
+
+<!-- CENTER -->
+<div id="center-col">
+  <div id="toolbar">
+    <button class="tool-btn active" id="tool-select" title="1 — Tanlash">⬛</button>
+    <button class="tool-btn" id="tool-move" title="2 — Ko'chirish">✛</button>
+    <button class="tool-btn" id="tool-rotate" title="3 — Aylantirish">↻</button>
+    <button class="tool-btn" id="tool-scale" title="4 — O'lchamni o'zgartirish">⊞</button>
+    <span class="tool-lbl" id="gizmo-lbl" style="font-size:9px;color:var(--accent4);margin-left:2px">GIZMO:SEL</span>
+    <div class="sep" style="margin:0 3px"></div>
+    <button class="tool-btn" id="view-p" title="Perspektiv">P</button>
+    <button class="tool-btn" id="view-t" title="Top">T</button>
+    <button class="tool-btn" id="view-f" title="Front">F</button>
+    <button class="tool-btn" id="cam-fps-btn" title="FPS kamera">👁</button>
+    <span class="tool-lbl" id="cam-lbl">PERSP</span>
+    <div class="sep" style="margin:0 3px"></div>
+    <button class="tool-btn" id="phys-toggle" title="Fizika" style="color:var(--accent3)" onclick="togglePhysics()">🌊</button>
+    <button class="tool-btn" title="Audio" onclick="toggleAudio()">🔊</button>
+    <button class="tool-btn" id="collider-vis-btn" title="Collider ko'rsat (C)" onclick="toggleColliderVis();this.classList.toggle('active')">🔲</button>
+    <div class="spacer"></div>
+    <button class="play-btn" id="play-btn">▶ O'YNA</button>
+  </div>
+  <div id="cvp">
+    <canvas id="three-canvas"></canvas>
+    <!-- GIZMO OVERLAY SVG -->
+    <svg id="gizmo-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
+      <defs>
+        <marker id="ah-x" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#ff4444"/></marker>
+        <marker id="ah-y" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#44ff44"/></marker>
+        <marker id="ah-z" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#4488ff"/></marker>
+      </defs>
+      <!-- MOVE/SCALE gizmo axes -->
+      <g id="gizmo-x" style="pointer-events:all;cursor:ew-resize;display:none">
+        <line id="gx-line" stroke="#ff4444" stroke-width="2.5" marker-end="url(#ah-x)"/>
+        <text id="gx-lbl" fill="#ff4444" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">X</text>
+        <rect id="gx-hit" fill="transparent" height="14" style="cursor:ew-resize"/>
+      </g>
+      <g id="gizmo-y" style="pointer-events:all;cursor:ns-resize;display:none">
+        <line id="gy-line" stroke="#44ff44" stroke-width="2.5" marker-end="url(#ah-y)"/>
+        <text id="gy-lbl" fill="#44ff44" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Y</text>
+        <rect id="gy-hit" fill="transparent" width="14" style="cursor:ns-resize"/>
+      </g>
+      <g id="gizmo-z" style="pointer-events:all;cursor:nesw-resize;display:none">
+        <line id="gz-line" stroke="#4488ff" stroke-width="2.5" marker-end="url(#ah-z)"/>
+        <text id="gz-lbl" fill="#4488ff" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Z</text>
+        <rect id="gz-hit" fill="transparent" height="14" style="cursor:nesw-resize"/>
+      </g>
+      <!-- ROTATE gizmo rings — shown only in rotate mode -->
+      <!-- Y axis ring = KO'K (gorizontal, Y o'qi atrofida) -->
+      <g id="rot-ring-y" style="pointer-events:all;cursor:ew-resize;display:none">
+        <ellipse id="rot-y-ellipse" fill="none" stroke="#00ccff" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
+        <ellipse id="rot-y-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ew-resize"/>
+        <text id="rot-y-lbl" fill="#00ccff" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Y</text>
+      </g>
+      <!-- X axis ring = YASHIL (X o'qi atrofida) -->
+      <g id="rot-ring-x" style="pointer-events:all;cursor:ns-resize;display:none">
+        <ellipse id="rot-x-ellipse" fill="none" stroke="#44ff88" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
+        <ellipse id="rot-x-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ns-resize"/>
+        <text id="rot-x-lbl" fill="#44ff88" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">X</text>
+      </g>
+      <!-- Z axis ring = SARIQ (Z o'qi atrofida) -->
+      <g id="rot-ring-z" style="pointer-events:all;cursor:nesw-resize;display:none">
+        <ellipse id="rot-z-ellipse" fill="none" stroke="#ffdd00" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
+        <ellipse id="rot-z-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:nesw-resize"/>
+        <text id="rot-z-lbl" fill="#ffdd00" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Z</text>
+      </g>
+    </svg>
+    <div id="fps-ov">
+      FPS: <span id="fps-d">60</span><br>
+      Obj: <span id="obj-d">0</span> | Tri: <span id="tri-d">0</span><br>
+      Vaqt: <span id="time-d">0.00s</span>
+    </div>
+    <div id="mode-ov">
+      CAM: <span id="cam-mode-lbl">Perspektiv</span><br>
+      RMB+Sichq: Aylantir | RMB+WASD: Yur<br>
+      Q/E: Pastga/Tepaga | Shift: Tez | Space: Sekin
+    </div>
+    <div id="crosshair">+</div>
+    <div id="fps-grab-hint">LMB: Ko'tar | Scroll: Aylandir | RMB: Tashlash</div>
+    <div id="fps-held-lbl">📦 ushlanmoqda</div>
+    <div id="gltf-drop">
+      <span style="font-size:36px">📦</span>
+      GLB / GLTF faylni tashlang
+      <span style="font-size:11px;color:var(--muted);font-weight:400">yoki yuqoridagi Import tugmasini bosing</span>
+    </div>
+  </div>
+  <div id="console-resize-handle"></div>
+  <div id="console-wrap">
+    <div class="panel-tabs" style="height:28px">
+      <div class="ptab active" onclick="switchBottomTab('console',this)">KONSOL</div>
+      <div class="ptab" onclick="switchBottomTab('timeline',this)">⏱ TIMELINE</div>
+      <div class="ptab" onclick="switchBottomTab('physics',this)">FIZIKA</div>
+      <div class="ptab" onclick="switchBottomTab('script',this)" style="color:var(--accent3)">⚡ SCRIPT</div>
+    </div>
+    <div id="console-body"></div>
+    <div id="timeline-panel">
+      <div id="tl-toolbar">
+        <button class="tl-btn" id="tl-play-btn" onclick="tlPlay()">▶</button>
+        <button class="tl-btn" onclick="tlStop()">■</button>
+        <div class="sep" style="margin:0 2px"></div>
+        <button class="tl-btn" onclick="tlAddKeyframe()" style="color:var(--accent);border-color:rgba(0,229,255,.3)">◆ KF</button>
+        <button class="tl-btn vis" onclick="tlAddVisKeyframe()">👁 VIS</button>
+        <button class="tl-btn" onclick="tlAddSoundKeyframe()" style="color:var(--accent3);border-color:rgba(57,255,20,.3)" title="Ovoz keyframe qo'shish">♪ SND</button>
+        <button class="tl-btn" onclick="tlDeleteKeyframe()">✕</button>
+        <button class="tl-btn" onclick="tlDuplicateKeyframe()" title="Tanlangan keyframeni nusxalash (keyingi pozitsiyaga)" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉</button>
+        <button class="tl-btn" onclick="tlDuplicateTrack()" title="Tanlangan ob'ekt trackini yangi ob'ektga nusxalash" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉ Track</button>
+        <button class="tl-btn" id="tl-cut-btn" onclick="tlToggleCutMode()" title="Qismni kesish rejimi — diapazon tanlang, keyin Cut bosing" style="color:var(--accent2);border-color:rgba(255,107,53,.3)">✂ Kes</button>
+        <div class="sep" style="margin:0 2px"></div>
+        <span style="font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace">Easing:</span>
+        <select id="tl-ease-select" onchange="tlSetGlobalEase(this.value)">
+          <option value="smooth">Smooth</option>
+          <option value="linear">Linear</option>
+          <option value="bounce">Bounce</option>
+          <option value="elastic">Elastic</option>
+          <option value="back">Back</option>
+        </select>
+        <div style="flex:1"></div>
+        <span style="font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace">Davom:</span>
+        <input id="tl-dur-inp" type="number" min="1" max="60" value="5" onchange="tlSetDuration(parseFloat(this.value))">
+        <span style="font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace">s</span>
+        <span id="tl-time-lbl">0.00s</span>
+        <div style="width:1px;height:14px;background:var(--border);margin:0 3px"></div>
+        <button class="tl-btn" onclick="tlExportJSON()" id="tl-export-btn" title="Animatsiyani JSON yuklash (faqat Camera bo'lganda)" style="color:var(--accent);border-color:rgba(0,229,255,.3);white-space:nowrap">⬇ Export</button>
+        <button class="tl-btn" onclick="document.getElementById('tl-import-file').click()" style="color:var(--accent2);border-color:rgba(255,107,53,.3);white-space:nowrap">⬆ Import</button>
+        <input type="file" id="tl-import-file" accept=".json,.zip" style="display:none" onchange="tlImportJSON(event)">
+      </div>
+      <div id="tl-body">
+        <div id="tl-scrubber-row">
+          <div id="tl-cut-range" style="display:none;position:absolute;top:0;bottom:0;background:rgba(255,107,53,0.15);border-left:2px solid var(--accent2);border-right:2px solid var(--accent2);pointer-events:none;z-index:10"></div>
+          <div id="tl-playhead"></div>
+        </div>
+        <div id="tl-tracks"></div>
+      </div>
+    </div>
+    <!-- KF popup -->
+    <div id="tl-kf-popup">
+      <div class="kfp-row"><span class="kfp-label">EASING</span>
+        <select id="kfp-ease" onchange="tlSetKfEase(this.value)">
+          <option value="smooth">Smooth (EaseInOut)</option>
+          <option value="linear">Linear</option>
+          <option value="bounce">Bounce</option>
+          <option value="elastic">Elastic</option>
+          <option value="back">Back (Qayish)</option>
+        </select>
+      </div>
+      <div class="kfp-row"><span class="kfp-label">TANGENT</span>
+        <select id="kfp-tangent" onchange="tlSetKfTangent(this.value)">
+          <option value="auto">Auto</option>
+          <option value="flat">Tekis (Flat)</option>
+          <option value="sharp">O'tkir (Sharp)</option>
+        </select>
+      </div>
+      <div class="kfp-row" id="kfp-vis-row" style="display:none"><span class="kfp-label">KO'RINISH</span>
+        <select id="kfp-vis" onchange="tlSetKfVis(this.value)">
+          <option value="1">Ko'rinadi ✅</option>
+          <option value="0">Ko'rinmaydi ❌</option>
+        </select>
+      </div>
+      <div class="kfp-row"><span class="kfp-label" style="font-size:8px;color:var(--red);cursor:pointer" onclick="tlDeleteKeyframe();$('tl-kf-popup').style.display='none'">✕ O'chirish</span>
+        <span class="kfp-label" style="font-size:8px;color:var(--accent);cursor:pointer" onclick="tlDuplicateKeyframe();$('tl-kf-popup').style.display='none'">⧉ Nusxa</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SOUND KF POPUP -->
+<div id="tl-snd-popup">
+  <div style="font-size:9px;color:var(--accent3);letter-spacing:1px;margin-bottom:6px">♪ OVOZ KEYFRAME</div>
+  <div class="sp-row">
+    <span class="sp-lbl">Ovoz</span>
+    <select id="sp-sound" style="font-family:'Share Tech Mono',monospace;font-size:9px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 4px;border-radius:2px;outline:none;flex:1"></select>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">Hajm</span>
+    <input type="range" id="sp-volume" min="0" max="1" step="0.05" value="1" style="flex:1;accent-color:var(--accent3)">
+    <span id="sp-vol-lbl" style="font-size:9px;color:var(--accent3);width:28px;text-align:right">1.0</span>
+  </div>
+  <div class="sp-row">
+    <span class="sp-lbl">3D</span>
+    <label style="display:flex;align-items:center;gap:4px;cursor:pointer">
+      <input type="checkbox" id="sp-spatial" checked style="accent-color:var(--accent3)">
+      <span style="font-size:9px;color:var(--muted)">Makoniy</span>
+    </label>
+    <button onclick="tlSndKfPreview()" style="background:none;border:1px solid var(--accent3);color:var(--accent3);font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer">▶</button>
+  </div>
+  <div class="sp-row" style="margin-top:4px;border-top:1px solid var(--border);padding-top:4px">
+    <button onclick="tlSndKfSave()" style="flex:1;padding:4px;background:rgba(57,255,20,.1);border:1px solid var(--accent3);color:var(--accent3);font-size:9px;border-radius:3px;cursor:pointer">✔ Saqlash</button>
+    <button onclick="tlSndKfDelete()" style="padding:4px 8px;background:none;border:1px solid var(--border);color:var(--red);font-size:9px;border-radius:3px;cursor:pointer">✕</button>
+  </div>
+</div>
+<div id="script-panel" style="display:none;flex-direction:column;height:100%;overflow:hidden">
+  <div style="height:28px;display:flex;align-items:center;padding:0 8px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--panel2)">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent3)">⚡</span>
+    <select id="script-obj-select" style="font-family:'Share Tech Mono',monospace;font-size:10px;background:var(--bg);border:1px solid var(--border);color:var(--text);padding:2px 5px;border-radius:2px;outline:none;cursor:pointer;flex:1" onchange="scriptSelectObj(this.value)">
+      <option value="">— Obyekt tanlang —</option>
+    </select>
+    <button onclick="scriptRun()" style="background:rgba(57,255,20,.1);border:1px solid rgba(57,255,20,.3);color:var(--accent3);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 8px;border-radius:2px;cursor:pointer">▶ Run</button>
+    <button onclick="scriptClear()" style="background:none;border:1px solid var(--border);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 6px;border-radius:2px;cursor:pointer">✕</button>
+    <button onclick="scriptInsertTemplate()" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 6px;border-radius:2px;cursor:pointer">📋 Shablon</button>
+  </div>
+  <div style="display:flex;flex:1;overflow:hidden">
+    <!-- Line numbers -->
+    <div id="script-lines" style="width:28px;background:#060810;border-right:1px solid var(--border);overflow:hidden;padding:4px 0;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:right;padding-right:5px;line-height:1.5;flex-shrink:0;user-select:none"></div>
+    <!-- Code editor -->
+    <textarea id="script-editor" spellcheck="false" style="flex:1;background:#060810;border:none;color:#e0e8f0;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.5;padding:4px 8px;outline:none;resize:none;tab-size:2" placeholder="// Obyekt tanlang va script yozing...
+// onCreate, onUpdate, onCollide, onPlayerEnter
+// Misol: this.position.y += Math.sin(time)*0.01" oninput="scriptUpdateLines()"></textarea>
+  </div>
+  <!-- Script API docs mini -->
+  <div id="script-api-bar" style="height:22px;display:flex;align-items:center;gap:8px;padding:0 8px;border-top:1px solid var(--border);background:#060810;overflow-x:auto;flex-shrink:0">
+    <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0">API:</span>
+    <span class="script-api-tag" onclick="scriptInsert('this.position.x')">this.pos</span>
+    <span class="script-api-tag" onclick="scriptInsert('this.rotation.y')">this.rot</span>
+    <span class="script-api-tag" onclick="scriptInsert('this.scale.x')">this.scale</span>
+    <span class="script-api-tag" onclick="scriptInsert('this.material.color.set(0xff0000)')">this.color</span>
+    <span class="script-api-tag" onclick="scriptInsert('this.visible')">this.visible</span>
+    <span class="script-api-tag" onclick="scriptInsert('player.position')">player.pos</span>
+    <span class="script-api-tag" onclick="scriptInsert('distanceTo(player)')">distanceTo</span>
+    <span class="script-api-tag" onclick="scriptInsert('getById(2)')">getById</span>
+    <span class="script-api-tag" onclick="scriptInsert('pushPlayer(force)')">pushPlayer</span>
+    <span class="script-api-tag" onclick="scriptInsert('spawnParticles(this)')">particles</span>
+    <span class="script-api-tag" onclick="scriptInsert('playSound(440)')">sound</span>
+    <span class="script-api-tag" onclick="scriptInsert('log()')">log</span>
+  </div>
+</div>
+
+<div class="col-resizer" id="right-resizer" title="Tortib o'lchov o'zgartir"></div>
+<div id="right-col">
+  <div class="panel-tabs" style="border-bottom:1px solid var(--border)">
+    <div class="ptab active" id="inspector-tab" onclick="switchInspectorTab('inspector',this)">INSPEKTOR</div>
+    <div class="ptab" id="online-tab" onclick="switchInspectorTab('online',this)">🌐 ONLINE</div>
+  </div>
+  <div id="inspector-content">
+    <div style="padding:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.9">
+      Obyektni tanlang<br><span style="font-size:9px;font-family:'Share Tech Mono',monospace">LMB: tanlash<br>F: fokus<br>Del: o'chirish</span>
+    </div>
+  </div>
+  <!-- CURVE EDITOR PANEL — inspector pastida -->
+  <div id="curve-editor-panel">
+    <div id="curve-editor-header" onclick="ceCycleResize()">
+      <span id="curve-editor-title">◈ EGRI CHIZIQ MUHARRIR</span>
+      <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted)" id="ce-track-name">—</span>
+      <span id="curve-editor-close" onclick="event.stopPropagation();ceClose()" title="Yopish">✕</span>
+    </div>
+    <div id="curve-editor-body">
+      <!-- Track tabs: POS / ROT / VIS -->
+      <div class="ce-track-tabs" id="ce-track-tabs"></div>
+      <!-- Easing presets -->
+      <div class="ce-ease-row" id="ce-ease-row">
+        <button class="ce-ease-btn" data-ease="linear" onclick="ceSetEase('linear')">Linear</button>
+        <button class="ce-ease-btn active" data-ease="smooth" onclick="ceSetEase('smooth')">Smooth</button>
+        <button class="ce-ease-btn" data-ease="bounce" onclick="ceSetEase('bounce')">Bounce</button>
+        <button class="ce-ease-btn" data-ease="elastic" onclick="ceSetEase('elastic')">Elastic</button>
+        <button class="ce-ease-btn" data-ease="back" onclick="ceSetEase('back')">Back ↩</button>
+      </div>
+      <!-- Canvas -->
+      <div id="curve-canvas-wrap">
+        <canvas id="curve-canvas" width="209" height="120"></canvas>
+      </div>
+      <div class="ce-info" id="ce-info">Track labeliga bosing</div>
+    </div>
+  </div>
+</div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<!-- GLTFLoader — GLB/GLTF yuklash uchun -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<!-- DRACOLoader — Draco siqilgan GLB uchun -->
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
+<!-- Draco decoder for compressed GLB -->
+<script src="https://www.gstatic.com/draco/versioned/decoders/1.5.6/draco_decoder.js"></script>
+<!-- Rapier physics WASM -->
+<script>
+// Rapier WASM — dynamic import (file:// va server da ham ishlaydi)
+(function() {
+  import('https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.11.2')
+    .then(mod => mod.default || mod)
+    .then(RAPIER => RAPIER.init().then(() => {
+      window.RAPIER = RAPIER;
+      window._rapierReady = true;
+      window.dispatchEvent(new Event('rapier-ready'));
+    }))
+    .catch(e => {
+      console.warn('Rapier WASM yuklanmadi (offline rejim):', e.message);
+      window._rapierReady = false;
+      window.dispatchEvent(new Event('rapier-ready'));
+    });
+})();
+</script>
+<div id="ss-flash"></div>
+<div id="undo-toast">↩ Bekor qilindi</div>
+<!-- HIERARCHY CONTEXT MENU -->
+<div id="hier-ctx">
+  <div class="cm-item" onclick="hierCtxAction('folder')"><span class="cm-ico">📁</span>Papka qo'shish<span class="cm-key">Ctrl+F</span></div>
+  <div class="cm-item" onclick="hierCtxAction('duplicate')"><span class="cm-ico">⧉</span>Nusxalash<span class="cm-key">Ctrl+D</span></div>
+  <div class="cm-sep"></div>
+  <div class="cm-item" onclick="hierCtxAction('expand')"><span class="cm-ico">▾</span>Bolalarni ochish</div>
+  <div class="cm-item" onclick="hierCtxAction('collapse')"><span class="cm-ico">▸</span>Bolalarni yopish</div>
+  <div class="cm-item" onclick="hierCtxAction('expand-all')"><span class="cm-ico">↕</span>Hammasini ochish</div>
+  <div class="cm-item" onclick="hierCtxAction('collapse-all')"><span class="cm-ico">⇔</span>Hammasini yopish</div>
+  <div class="cm-sep"></div>
+  <div class="cm-item" onclick="hierCtxAction('select-all')"><span class="cm-ico">◻</span>Hammasini tanlash<span class="cm-key">Ctrl+A</span></div>
+  <div class="cm-item" onclick="hierCtxAction('select-kf')"><span class="cm-ico">◆</span>Barcha keyframe</div>
+  <div class="cm-sep"></div>
+  <div class="cm-item red" onclick="hierCtxAction('delete')"><span class="cm-ico" style="color:var(--red)">✕</span><span style="color:var(--red)">O'chirish</span><span class="cm-key">Del</span></div>
+</div>
+
+<script src="scripts/core/engine.js"></script>
+<script src="scripts/core/lang.js"></script>
+<script src="scripts/core/renderer.js"></script>
+<script src="scripts/core/gltf-loader.js"></script>
+<script src="scripts/core/hierarchy.js"></script>
+<script src="scripts/core/lights.js"></script>
+<script src="scripts/core/skybox.js"></script>
+<script src="scripts/core/particles.js"></script>
+<script src="scripts/systems/physics.js"></script>
+<script src="scripts/systems/audio.js"></script>
+<script src="scripts/core/scene-objects.js"></script>
+<script src="scripts/core/pivot.js"></script>
+<script src="scripts/systems/fog-weather.js"></script>
+<script src="scripts/systems/animation.js"></script>
+<script>
+// _keyLabel - keybindings.js dan oldin kerak (inspector.js ishlatadi)
+function _keyLabel(code) {
+  if (!code) return '---';
+  const map = {
+    'KeyW':'W','KeyA':'A','KeyS':'S','KeyD':'D','KeyQ':'Q','KeyE':'E',
+    'KeyR':'R','KeyF':'F','KeyG':'G','KeyH':'H','KeyI':'I','KeyJ':'J',
+    'KeyK':'K','KeyL':'L','KeyZ':'Z','KeyX':'X','KeyC':'C','KeyV':'V',
+    'KeyB':'B','KeyN':'N','KeyM':'M','KeyP':'P','KeyO':'O','KeyT':'T',
+    'KeyU':'U','KeyY':'Y',
+    'Space':'SPACE','ShiftLeft':'SHIFT L','ShiftRight':'SHIFT R',
+    'ControlLeft':'CTRL L','ControlRight':'CTRL R',
+    'AltLeft':'ALT L','AltRight':'ALT R',
+    'ArrowUp':'↑','ArrowDown':'↓','ArrowLeft':'←','ArrowRight':'→',
+    'Digit1':'1','Digit2':'2','Digit3':'3','Digit4':'4','Digit5':'5',
+    'Digit6':'6','Digit7':'7','Digit8':'8','Digit9':'9','Digit0':'0',
+    'Enter':'ENTER','Backspace':'BKSP','Tab':'TAB','Escape':'ESC','CapsLock':'CAPS',
+  };
+  return map[code] || code.replace('Key','').replace('Digit','');
+}
+window._kbAnimations = window._kbAnimations || {};
+window._mouseAnimEvents = window._mouseAnimEvents || {
+  click:'', dblclick:'', presshold:'', wheelup:'', wheeldown:'',
+  dirUp:'', dirDown:'', dirLeft:'', dirRight:''
+};
+</script>
+<script src="scripts/core/inspector.js"></script>
+<script src="scripts/ui/particle-inspector.js"></script>
+<script src="scripts/ui/model-orient-inspector.js"></script>
+<script src="scripts/ui/anim-inspector.js"></script>
+<script src="scripts/ui/add-object-menu.js"></script>
+<script src="scripts/ui/save-load.js"></script>
+<script src="scripts/gameplay/camera-modes.js"></script>
+<script src="scripts/gameplay/orbit-controls.js"></script>
+<script src="scripts/gameplay/keyboard.js"></script>
+<script src="scripts/gameplay/edit-mode.js"></script>
+<script src="scripts/gameplay/play-mode.js"></script>
+<script src="scripts/misc/stats.js"></script>
+<script src="scripts/misc/fullscreen.js"></script>
+<script src="scripts/gameplay/touch-controls.js"></script>
+<script src="scripts/gameplay/keybindings.js"></script>
+<script src="scripts/gameplay/weapon.js"></script>
+<script src="scripts/ui/tools.js"></script>
+<script src="scripts/core/camera-vars.js"></script>
+<script src="scripts/core/camera-module.js"></script>
+<script src="scripts/core/main-loop.js"></script>
+<script src="scripts/core/gizmo.js"></script>
+<script src="scripts/misc/screenshot.js"></script>
+<script src="scripts/misc/gltf-import.js"></script>
+<script src="scripts/core/nested-objects.js"></script>
+<script src="scripts/systems/physics-modes.js"></script>
+<script src="scripts/systems/deform.js"></script>
+<script src="scripts/systems/jelly-update.js"></script>
+<script src="scripts/ui/bottom-tabs.js"></script>
+<script src="scripts/systems/script-system.js"></script>
+<script src="scripts/entities/player.js"></script>
+<script src="scripts/misc/car-proximity.js"></script>
+<script src="scripts/systems/timeline.js"></script>
+<script src="scripts/ui/camera-objects.js"></script>
+<script src="scripts/systems/curve-editor.js"></script>
+<script src="scripts/gameplay/fps-interaction.js"></script>
+<script src="scripts/ui/asset-category.js"></script>
+<script src="scripts/ui/functional-blocks.js"></script>
+<script src="scripts/entities/car.js"></script>
+<script src="scripts/entities/animal-ai.js"></script>
+<script src="scripts/systems/prefab.js"></script>
+<script src="scripts/systems/scene-manager.js"></script>
+<script src="scripts/systems/pbr-hdr.js"></script>
+<script src="scripts/systems/asset-importer.js"></script>
+<script src="scripts/systems/editor-tools.js"></script>
+<script src="scripts/systems/constraints.js"></script>
+<script src="scripts/core/camera-preview.js"></script>
+<script src="scripts/systems/multiplayer.js"></script>
+<script src="scripts/systems/multiplayer-storage.js"></script>
+<script src="scripts/systems/multiplayer-smooth.js"></script>
+<script src="scripts/systems/multiplayer-viz.js"></script>
+<script src="scripts/systems/multiplayer-admin.js"></script>
+<script src="scripts/ui/multiplayer-panel.js"></script>
+<script src="scripts/ui/inspector-tabs.js"></script>
+<script src="scripts/systems/multiplayer-hooks.js"></script>
+<script src="scripts/systems/multiplayer-selection-sync.js"></script>
+<script src="scripts/systems/multiplayer-player-mode.js"></script>
+</body>
+</html>
