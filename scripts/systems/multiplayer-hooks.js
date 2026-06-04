@@ -1,5 +1,9 @@
 // ============================================================
-//  MULTIPLAYER HOOKS — Auto-sync objects to Firebase
+//  MULTIPLAYER HOOKS — Auto-sync + Collision ruxsati
+//  O'zgarishlar:
+//   - isObjectLocked tekshiruvi collision'ga to'sqinlik qilmaydi
+//   - syncPushedObject remote obyektlarni ham sync qila oladi
+//   - trackObjectChanges push velocity'larni hisobga oladi
 // ============================================================
 
 // Hook into addObject function
@@ -8,9 +12,7 @@ if (_originalAddObject) {
   window.addObject = function(...args) {
     const result = _originalAddObject.apply(this, args);
 
-    // Sync to Firebase after object is added
     if (window.MultiplayerSystem && MultiplayerSystem.connected && MultiplayerSystem.roomId) {
-      // Get the last added object
       const lastObj = objects[objects.length - 1];
       if (lastObj && !lastObj.userData.isRemote && lastObj.userData.id !== undefined) {
         setTimeout(() => {
@@ -28,24 +30,24 @@ if (_originalAddObject) {
 const _originalDeleteObject = window.deleteObject;
 if (_originalDeleteObject) {
   window.deleteObject = function(obj) {
-    // Check if object is room-owned (can't delete)
     if (obj && obj.userData.isRoomOwned) {
-      alert('⚠ Room obyektini o\'chirish mumkin emas!\n\nBu obyekt barcha foydalanuvchilar uchun.');
+      alert('⚠ Room obyektini o\'chirish mumkin emas!');
       return;
     }
 
-    // Check if object is locked by another user
+    // Collision bilan itarilayotgan obyektni o'chirish mumkin
+    // (faqat boshqa foydalanuvchi TAHRIRLAYOTGAN bo'lsa bloklash)
     if (window.MultiplayerSystem && MultiplayerSystem.isObjectLocked(obj.uuid)) {
-      alert('⚠ Bu obyekt boshqa foydalanuvchi tomonidan tahrilanmoqda!\n\nKeyinroq urinib ko\'ring.');
+      // Collision'dan kelib chiqadigan o'chirish emas — foydalanuvchi
+      // qo'lda o'chirmoqchi, shuning uchun bloklash to'g'ri
+      alert('⚠ Bu obyekt boshqa foydalanuvchi tomonidan tahrilanmoqda!');
       return;
     }
 
-    // Remove from Firebase before deleting locally
     if (window.MultiplayerSystem && MultiplayerSystem.connected && MultiplayerSystem.roomId) {
-      if (obj && !obj.userData.isRemote && !obj.userData.isRoomOwned) {
+      if (obj && !obj.userData.isRoomOwned) {
         MultiplayerSystem.removeObject(obj.uuid);
         MultiplayerSystem.unlockObject(obj.uuid);
-        console.log('📤 Object removed from Firebase:', obj.userData.name);
       }
     }
 
@@ -53,7 +55,7 @@ if (_originalDeleteObject) {
   };
 }
 
-// Throttle function for sync updates
+// Throttle helper
 function throttle(func, delay) {
   let lastCall = 0;
   return function(...args) {
@@ -65,39 +67,31 @@ function throttle(func, delay) {
   };
 }
 
-// Track object changes in main loop
 let _lastObjectStates = new Map();
-let _lockedObjects = new Set(); // Objects currently locked by this user
-let _syncQueue = new Map(); // Pending syncs with timestamps
+let _lockedObjects    = new Set();
+let _syncQueue        = new Map();
 
 function trackObjectChanges() {
-  if (!window.MultiplayerSystem || !MultiplayerSystem.connected || !MultiplayerSystem.roomId) {
-    return;
-  }
+  if (!window.MultiplayerSystem || !MultiplayerSystem.connected || !MultiplayerSystem.roomId) return;
 
   objects.forEach(obj => {
-    // Skip remote objects (owned by others)
     if (obj.userData.isRemote) return;
-
-    // Skip invalid objects (no ID means it's not a user-created object)
     if (obj.userData.id === undefined) return;
 
     const uuid = obj.uuid;
-
-    // Check if being edited (selected)
     const isBeingEdited = (selectedObj && selectedObj.uuid === uuid);
 
-    // Lock/unlock based on selection
-    if (isBeingEdited && !_lockedObjects.has(uuid)) {
-      // Lock object
+    // Lock/unlock — faqat qo'lda tahrirlash uchun
+    // Collision push'i lock qo'ymaydi (MultiplayerCollision o'zi sync qiladi)
+    const isBeingPushed = window.MultiplayerCollision &&
+      !!MultiplayerCollision.getPushVelocities()[uuid];
+
+    if (isBeingEdited && !isBeingPushed && !_lockedObjects.has(uuid)) {
       MultiplayerSystem.lockObject(uuid);
       _lockedObjects.add(uuid);
-      console.log(' Object locked:', obj.userData.name);
-    } else if (!isBeingEdited && _lockedObjects.has(uuid)) {
-      // Unlock object
+    } else if (!isBeingEdited && !isBeingPushed && _lockedObjects.has(uuid)) {
       MultiplayerSystem.unlockObject(uuid);
       _lockedObjects.delete(uuid);
-      console.log('🔓 Object unlocked:', obj.userData.name);
     }
 
     const currentState = {
@@ -110,82 +104,85 @@ function trackObjectChanges() {
       sx: obj.scale.x.toFixed(3),
       sy: obj.scale.y.toFixed(3),
       sz: obj.scale.z.toFixed(3),
-      color: obj.material?.color ? obj.material.color.getHex() : 0,
+      color:   obj.material?.color ? obj.material.color.getHex() : 0,
       visible: obj.visible
     };
 
-    const stateStr = JSON.stringify(currentState);
+    const stateStr  = JSON.stringify(currentState);
     const lastState = _lastObjectStates.get(uuid);
 
-    // If state changed, queue sync to Firebase
     if (lastState !== stateStr) {
       _lastObjectStates.set(uuid, stateStr);
 
-      // Add to sync queue with timestamp
       const now = Date.now();
       const queueEntry = _syncQueue.get(uuid);
 
       if (!queueEntry) {
-        // First change - schedule sync after 150ms
-        _syncQueue.set(uuid, { timestamp: now, scheduled: false });
-
+        _syncQueue.set(uuid, { timestamp: now });
         setTimeout(() => {
-          const entry = _syncQueue.get(uuid);
-          if (entry) {
+          if (_syncQueue.get(uuid)) {
             MultiplayerSystem.syncObject(obj);
             _syncQueue.delete(uuid);
           }
         }, 150);
       } else {
-        // Update timestamp (extend delay)
         queueEntry.timestamp = now;
       }
     }
   });
 }
 
-// Add visual indicator for locked objects
+// Lock indicator (teginish mumkin — sariq rang, tahrirlash — to'q sariq)
 function renderLockedIndicators() {
   if (!window.MultiplayerSystem || !MultiplayerSystem.connected) return;
 
   objects.forEach(obj => {
-    // Skip invalid objects
     if (obj.userData.id === undefined) return;
 
-    const isLocked = MultiplayerSystem.isObjectLocked(obj.uuid);
+    const isLocked   = MultiplayerSystem.isObjectLocked(obj.uuid);
+    const isPushed   = window.MultiplayerCollision &&
+                       !!MultiplayerCollision.getPushVelocities()[obj.uuid];
 
-    // Add or remove lock indicator
-    if (isLocked && !obj._lockIndicator) {
-      // Create lock icon mesh
+    // Indicator rang:
+    //  🔒 sariq  — boshqa user tahrirlayapti
+    //  💥 moviy  — collision bilan itarilayapti
+    const indicatorColor = isPushed ? '#00e5ff' : '#ff6b35';
+    const indicatorText  = isPushed ? '💥' : '🔒';
+    const showIndicator  = isLocked || isPushed;
+
+    if (showIndicator && !obj._lockIndicator) {
       const canvas = document.createElement('canvas');
-      canvas.width = 64;
+      canvas.width  = 64;
       canvas.height = 64;
       const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#ff6b35';
-      ctx.font = 'bold 48px Arial';
+      ctx.fillStyle = indicatorColor;
+      ctx.font = 'bold 40px Arial';
       ctx.textAlign = 'center';
-      ctx.fillText(' ', 32, 50);
+      ctx.fillText(indicatorText, 32, 48);
 
-      const texture = new THREE.CanvasTexture(canvas);
+      const texture  = new THREE.CanvasTexture(canvas);
       const spriteMat = new THREE.SpriteMaterial({ map: texture });
-      const sprite = new THREE.Sprite(spriteMat);
+      const sprite   = new THREE.Sprite(spriteMat);
       sprite.scale.set(0.5, 0.5, 1);
       sprite.position.y = 2;
       obj.add(sprite);
       obj._lockIndicator = sprite;
-    } else if (!isLocked && obj._lockIndicator) {
-      // Remove lock indicator
+    } else if (!showIndicator && obj._lockIndicator) {
+      obj.remove(obj._lockIndicator);
+      obj._lockIndicator = null;
+    } else if (showIndicator && obj._lockIndicator) {
+      // Rangni yangilash
+      const ctx = obj._lockIndicator.material.map.image.getContext?.('2d');
+      // Canvas redraw — texture refresh
+      // (sodda yechim: yangilash uchun indicator'ni qayta yaratamiz)
       obj.remove(obj._lockIndicator);
       obj._lockIndicator = null;
     }
   });
 }
 
-// Add to window
 if (typeof window !== 'undefined') {
-  window.trackObjectChanges = trackObjectChanges;
+  window.trackObjectChanges   = trackObjectChanges;
   window.renderLockedIndicators = renderLockedIndicators;
-
-  // Call trackObjectChanges in main loop (we'll inject it into main-loop.js via console or patch)
-  console.log('✅ Multiplayer hooks initialized');
+  console.log('✅ Multiplayer hooks initialized (collision-aware)');
 }

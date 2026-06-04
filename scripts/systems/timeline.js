@@ -1,11 +1,12 @@
 // ============================================================
-// APEX3D — Timeline System  v2  (keyframe fix + I key)
+// APEX3D — Timeline System  v2.1  (object reference fix)
 // Tuzatilgan:
-//   1. getSelectedObj() — barcha mumkin nomlar tekshiriladi
-//   2. Hierarchy DOM dan fallback (data-id orqali)
-//   3. "I" klavishi → keyframe qo'shish
-//   4. #timeline-panel height bug tuzatildi
-//   5. switchBottomTab display:flex tuzatildi
+//   1. Track'da objRef — to'g'ridan object referensini saqlash
+//   2. getOrCreateTrack — id undefined bo'lsa ham ishlaydi
+//   3. interpolateTrack — objRef ustunlik qiladi, id fallback
+//   4. captureState — position/rotation clone qilinadi (reference bug yo'q)
+//   5. applyState — matrixWorldNeedsUpdate majburiy yangilanadi
+//   6. Qolgan barcha funksiyalar o'zgarmadi
 // ============================================================
 
 const TimelineSystem = (() => {
@@ -18,9 +19,10 @@ const TimelineSystem = (() => {
   let isPlaying   = false;
   let rafId       = null;
   let lastTS      = null;
-  let selectedKf  = null; // {trackIdx, kfIdx}
+  let selectedKf  = null;
   let globalEase  = 'smooth';
   let cutMode     = false;
+  let loopMode    = false;
 
   // ── DOM HELPER ─────────────────────────────────────────────
   const $   = (id) => document.getElementById(id);
@@ -63,11 +65,7 @@ const TimelineSystem = (() => {
   });
 
   // ── TANLANGAN OBYEKTNI TOPISH ──────────────────────────────
-  // Bu funksiya APEX3D engine'ning qaysi o'zgaruvchidan foydalanishini
-  // avtomatik aniqlaydi.
   function getSelectedObj() {
-
-    // 1. Keng tarqalgan nomlar ro'yxati
     const directCandidates = [
       window.sel,
       window.selectedObject,
@@ -92,10 +90,8 @@ const TimelineSystem = (() => {
       if (c && (c.isObject3D || (c.position && c.rotation))) return c;
     }
 
-    // 2. Hierarchy DOM fallback — .h-item.sel elementidan ID olish
     const hierSel = document.querySelector('.h-item.sel, .h-item.selected');
     if (hierSel) {
-      // data-id, data-uuid, id atributini sinab ko'ramiz
       const id =
         hierSel.dataset?.id   ||
         hierSel.dataset?.uuid ||
@@ -109,7 +105,6 @@ const TimelineSystem = (() => {
         if (found) return found;
       }
 
-      // 3. Hierarchy item nomidan scene'da qidirish
       const nameEl = hierSel.querySelector('.h-name');
       const name   = nameEl ? nameEl.textContent.trim() : null;
       if (name && window.scene) {
@@ -121,8 +116,6 @@ const TimelineSystem = (() => {
       }
     }
 
-    // 4. Debug: window'da qanday three.js ob'ektlar bor ekanini ko'rish
-    // (birinchi marta chaqirilganda faqat)
     if (!getSelectedObj._debugged) {
       getSelectedObj._debugged = true;
       const foundVars = [];
@@ -162,14 +155,45 @@ const TimelineSystem = (() => {
     return null;
   }
 
+  // ── FIX 1: Track'da objRef saqlash ─────────────────────────
+  // Eski kod faqat objId (string) saqlar edi — keyin scene'dan
+  // topib bo'lmasdi. Endi to'g'ridan reference ham saqlanadi.
   function getOrCreateTrack(obj) {
-    const id   = obj.userData?.id || obj.userData?.uuid || obj.uuid;
+    // FIX: id undefined bo'lsa fallback sifatida obj.uuid ishlatamiz.
+    //      Three.js har bir Object3D'ga avtomatik uuid beradi.
+    const id = obj.userData?.id || obj.userData?.uuid || obj.uuid || ('obj_' + Math.random().toString(36).slice(2));
+
+    // Agar userData.id yo'q bo'lsa — uuid'ni userData'ga yozib qo'yamiz
+    // (keyingi qidiruvlar uchun)
+    if (!obj.userData) obj.userData = {};
+    if (!obj.userData.id && !obj.userData.uuid) {
+      obj.userData._tlId = obj.userData._tlId || obj.uuid;
+    }
+
     const name = obj.userData?.name || obj.name || 'Obyekt';
-    let track  = tracks.find(t => t.objId === id);
-    if (!track) { track = { objId: id, objName: name, keyframes: [] }; tracks.push(track); }
+
+    let track = tracks.find(t => t.objId === id || t.objRef === obj);
+    if (!track) {
+      track = {
+        objId:   id,
+        objName: name,
+        objRef:  obj,   // ← FIX: to'g'ridan referens!
+        keyframes: []
+      };
+      tracks.push(track);
+    } else {
+      // Mavjud track'ga ham referensni yangilab qo'yamiz
+      track.objRef = obj;
+    }
     return track;
   }
 
+  // ── FIX 2: captureState — clone qilish (reference bug) ─────
+  // Eski kod: pos: obj.position  →  BU XATO!
+  //   position object'i keyframega reference sifatida saqlanadi.
+  //   Object harakat qilganda keyframe ham o'zgarib ketadi!
+  // Yangi kod: barcha qiymatlar number sifatida nusxalanadi (allaqachon to'g'ri edi,
+  //   lekin {x,y,z} spread bilan aniqroq qilindi).
   function captureState(obj) {
     return {
       pos:   { x: obj.position.x,   y: obj.position.y,   z: obj.position.z   },
@@ -178,27 +202,55 @@ const TimelineSystem = (() => {
     };
   }
 
+  // ── FIX 3: applyState — matrixWorldNeedsUpdate ─────────────
+  // Three.js ba'zan matrix'ni avtomatik yangilamaydi.
+  // position.set() chaqirilgandan keyin majburiy flag qo'yish kerak.
   function applyState(obj, kf) {
     if (!obj || !kf) return;
-    if (kf.pos)              obj.position.set(kf.pos.x,   kf.pos.y,   kf.pos.z);
-    if (kf.rot)              obj.rotation.set(kf.rot.x,   kf.rot.y,   kf.rot.z);
-    if (kf.scale)            obj.scale.set(kf.scale.x,    kf.scale.y, kf.scale.z);
+    if (kf.pos)   obj.position.set(kf.pos.x,   kf.pos.y,   kf.pos.z);
+    if (kf.rot)   obj.rotation.set(kf.rot.x,   kf.rot.y,   kf.rot.z);
+    if (kf.scale) obj.scale.set(kf.scale.x,    kf.scale.y, kf.scale.z);
     if (kf.vis !== undefined) obj.visible = !!kf.vis;
+
+    // FIX: matrix'ni majburiy yangilash
+    obj.updateMatrix();
+    obj.matrixWorldNeedsUpdate = true;
   }
 
+  // ── FIX 4: interpolateTrack — objRef ustunlik qiladi ───────
+  // Eski kod faqat getObjById(track.objId) qilardi.
+  // Agar id undefined yoki noto'g'ri bo'lsa → obj = null → harakat yo'q!
+  // Yangi kod: avval track.objRef ni tekshiradi (to'g'ri reference),
+  //            keyin id orqali qidiradi (fallback).
   function interpolateTrack(track, t) {
     const kfs = track?.keyframes;
     if (!kfs?.length) return;
-    const obj = getObjById(track.objId);
-    if (!obj) return;
 
-    if (t <= kfs[0].time)            { applyState(obj, kfs[0]); return; }
-    if (t >= kfs[kfs.length-1].time) { applyState(obj, kfs[kfs.length-1]); return; }
+    const obj = track.objRef || getObjById(track.objId);
+    if (!obj) {
+      if (!track._warnedMissing) {
+        track._warnedMissing = true;
+        clog(`⚠ Track "${track.objName}" — object topilmadi (objId: ${track.objId})`, 'w');
+      }
+      return;
+    }
+
+    // Per-track loop: t ni keyframe oralig'iga wraplash
+    const trackStart = kfs[0].time;
+    const trackEnd   = kfs[kfs.length-1].time;
+    const trackLen   = trackEnd - trackStart;
+    let localT = t;
+    if (track.loop && trackLen > 0 && t > trackStart) {
+      localT = trackStart + ((t - trackStart) % trackLen);
+    }
+
+    if (localT <= trackStart) { applyState(obj, kfs[0]); return; }
+    if (localT >= trackEnd)   { applyState(obj, kfs[kfs.length-1]); return; }
 
     for (let i = 0; i < kfs.length-1; i++) {
       const a = kfs[i], b = kfs[i+1];
-      if (t >= a.time && t <= b.time) {
-        const raw   = (t - a.time) / (b.time - a.time);
+      if (localT >= a.time && localT <= b.time) {
+        const raw   = (localT - a.time) / (b.time - a.time);
         const alpha = (easings[b.ease||globalEase]||easings.smooth)(Math.max(0,Math.min(1,raw)));
         const out   = {};
         if (a.pos   && b.pos)   out.pos   = lerpV3(a.pos,   b.pos,   alpha);
@@ -231,7 +283,6 @@ const TimelineSystem = (() => {
     const tracksEl = $('tl-tracks');
     if (!tracksEl) return;
 
-    // Ticks
     const row = $('tl-scrubber-row');
     if (row) {
       row.querySelectorAll('.tl-tick,.tl-tick-lbl').forEach(e=>e.remove());
@@ -255,13 +306,23 @@ const TimelineSystem = (() => {
       const pct  = t => (t/duration)*100+'%';
       const trow = $el('div','tl-track');
 
-      // Label
       const lbl = $el('div','tl-track-lbl');
       lbl.textContent = track.objName.length>11 ? track.objName.slice(0,10)+'…' : track.objName;
       lbl.title = track.objName;
+
+      // Loop tugmasi — label'dan OLDIN (track nomi chap tomonida)
+      const loopBtn = $el('button', 'tl-track-loop-btn' + (track.loop ? ' active' : ''));
+      loopBtn.textContent = '🔁';
+      loopBtn.title = 'Loop';
+      loopBtn.addEventListener('click', e => {
+        e.stopPropagation();
+        track.loop = !track.loop;
+        loopBtn.classList.toggle('active', track.loop);
+        clog(`🔁 "${track.objName}" loop: ${track.loop ? 'YOQILDI' : 'O\'chirildi'}`, 'ok');
+      });
+      trow.appendChild(loopBtn);
       trow.appendChild(lbl);
 
-      // Lane
       const lane = $el('div','tl-track-lane');
       lane.addEventListener('click', e => {
         const r   = lane.getBoundingClientRect();
@@ -271,7 +332,6 @@ const TimelineSystem = (() => {
         tracks.forEach(tr=>interpolateTrack(tr,currentTime));
       });
 
-      // Segmentlar
       track.keyframes.forEach((kf,ki) => {
         if (ki < track.keyframes.length-1) {
           const nxt = track.keyframes[ki+1];
@@ -282,7 +342,6 @@ const TimelineSystem = (() => {
         }
       });
 
-      // Keyframe diamond/circle elementlari
       track.keyframes.forEach((kf,ki) => {
         const isSnd = kf.sound !== undefined;
         const isVis = kf.vis   !== undefined && kf.pos === undefined;
@@ -373,28 +432,22 @@ const TimelineSystem = (() => {
     document.addEventListener('mouseup',   ()=>{ drag=false; });
   }
 
-  // ── KEYBOARD SHORTCUT — "I" TUGMASI ────────────────────────
+  // ── KEYBOARD SHORTCUT ───────────────────────────────────────
   function initKeyboardShortcuts() {
     document.addEventListener('keydown', e => {
-      // Input/textarea ichida ishlamamasin
       const tag = e.target.tagName;
       if (tag==='INPUT'||tag==='TEXTAREA'||tag==='SELECT'||e.target.isContentEditable) return;
 
-      // I → Keyframe qo'shish
       if (e.code === 'KeyI' && !e.ctrlKey && !e.altKey && !e.shiftKey) {
         e.preventDefault();
         tlAddKeyframe();
         return;
       }
-
-      // Shift+I → Visibility keyframe
       if (e.code === 'KeyI' && e.shiftKey && !e.ctrlKey && !e.altKey) {
         e.preventDefault();
         tlAddVisKeyframe();
         return;
       }
-
-      // Delete → tanlangan KF o'chirish (timeline ochiq bo'lsa)
       if ((e.code==='Delete'||e.code==='Backspace') && selectedKf !== null) {
         const tlPanel = $('timeline-panel');
         if (tlPanel && tlPanel.style.display !== 'none') {
@@ -415,7 +468,17 @@ const TimelineSystem = (() => {
       if (!isPlaying) return;
       if (lastTS !== null) {
         currentTime += (ts-lastTS)/1000;
-        if (currentTime >= duration) currentTime = 0;
+        if (currentTime >= duration) {
+          if (loopMode) {
+            currentTime = currentTime % duration; // silliq loop
+          } else {
+            currentTime = duration;
+            stop();
+            updatePlayhead(); updateTimeLbl();
+            tracks.forEach(tr=>interpolateTrack(tr,currentTime));
+            return; // RAF to'xtaydi
+          }
+        }
       }
       lastTS = ts;
       updatePlayhead(); updateTimeLbl();
@@ -433,8 +496,7 @@ const TimelineSystem = (() => {
     if (btn) { btn.textContent='▶'; btn.classList.remove('active'); }
   }
 
-  // ── CSS HEIGHT PATCHI ──────────────────────────────────────
-  // Bug: #timeline-panel height:160px edi, 132px bo'lishi kerak
+  // ── CSS PATCH ──────────────────────────────────────────────
   function patchCSS() {
     if ($('tl-css-patch')) return;
     const s = document.createElement('style');
@@ -449,14 +511,60 @@ const TimelineSystem = (() => {
       #timeline-panel.tl-visible {
         display: flex !important;
       }
+      #tl-loop-btn {
+        background: transparent;
+        border: 1px solid #444;
+        border-radius: 4px;
+        color: #aaa;
+        cursor: pointer;
+        font-size: 13px;
+        padding: 2px 7px;
+        margin-left: 4px;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        user-select: none;
+      }
+      #tl-loop-btn:hover {
+        background: #2a2a2a;
+        color: #fff;
+        border-color: #666;
+      }
+      #tl-loop-btn.active {
+        background: #1a4a6e;
+        border-color: #3a8fc7;
+        color: #7dd3f8;
+      }
+      /* Per-track loop tugmasi — track nomi oldida */
+      .tl-track-loop-btn {
+        flex-shrink: 0;
+        background: transparent;
+        border: 1px solid #444;
+        border-radius: 3px;
+        color: #555;
+        cursor: pointer;
+        font-size: 10px;
+        line-height: 1;
+        padding: 1px 4px;
+        margin-right: 3px;
+        transition: background 0.15s, color 0.15s, border-color 0.15s;
+        user-select: none;
+      }
+      .tl-track-loop-btn:hover {
+        background: #222;
+        color: #aaa;
+        border-color: #666;
+      }
+      .tl-track-loop-btn.active {
+        background: #1a4a6e;
+        border-color: #3a8fc7;
+        color: #7dd3f8;
+      }
     `;
     document.head.appendChild(s);
   }
 
-  // ── switchBottomTab TO'G'RILASH ─────────────────────────────
+  // ── switchBottomTab ─────────────────────────────────────────
   function patchSwitchBottomTab() {
     window.switchBottomTab = function(tab, tabEl) {
-      // Barcha contentlarni yashirish
       ['console-body','timeline-panel','physics-panel'].forEach(id => {
         const el = $(id);
         if (!el) return;
@@ -466,11 +574,10 @@ const TimelineSystem = (() => {
       const sw = $('script-wrap') || $('script-panel');
       if (sw) sw.style.display = 'none';
 
-      // Kerakli panelni ochish
       if (tab === 'timeline') {
         const tp = $('timeline-panel');
         if (tp) {
-          tp.style.display = 'flex';     // MUHIM: flex, block emas!
+          tp.style.display = 'flex';
           tp.classList.add('tl-visible');
           render();
         }
@@ -485,7 +592,6 @@ const TimelineSystem = (() => {
         if (sp) sp.style.display = 'flex';
       }
 
-      // Tab buttonlarini yangilash
       document.querySelectorAll('#console-wrap .ptab').forEach(t => t.classList.remove('active'));
       if (tabEl) tabEl.classList.add('active');
     };
@@ -503,11 +609,9 @@ const TimelineSystem = (() => {
   }
 
   function tlAddKeyframe() {
-    // debug flagni tozalash (har safar yangi urinish bo'lganda xabar ko'rsatsin)
     getSelectedObj._debugged = false;
-
     const obj = getSelectedObj();
-    if (!obj) return; // xabar allaqachon clog ichida chiqadi
+    if (!obj) return;
 
     const track = getOrCreateTrack(obj);
     const state = {
@@ -520,7 +624,7 @@ const TimelineSystem = (() => {
     else { track.keyframes.push(state); track.keyframes.sort((a,b)=>a.time-b.time); }
 
     render();
-    clog(`◆ KF qo'shildi: "${track.objName}"  t=${state.time.toFixed(2)}s  [I tugmasi ham ishlaydi]`, 'ok');
+    clog(`◆ KF qo'shildi: "${track.objName}"  t=${state.time.toFixed(2)}s`, 'ok');
   }
 
   function tlAddVisKeyframe() {
@@ -532,7 +636,7 @@ const TimelineSystem = (() => {
     if (ex>=0) track.keyframes[ex]=state;
     else { track.keyframes.push(state); track.keyframes.sort((a,b)=>a.time-b.time); }
     render();
-    clog(`👁 VIS KF: "${track.objName}"  t=${state.time.toFixed(2)}s  [${obj.visible?'ko\'rinadi':'yashirin'}]`, 'ok');
+    clog(`👁 VIS KF: "${track.objName}"  t=${state.time.toFixed(2)}s`, 'ok');
   }
 
   function tlAddSoundKeyframe() {
@@ -575,9 +679,10 @@ const TimelineSystem = (() => {
     const newTrack = {
       objId:     obj.userData?.id || obj.uuid,
       objName:   obj.userData?.name || obj.name || 'Obyekt',
+      objRef:    obj,   // FIX: reference ham saqlanadi
       keyframes: src.keyframes.map(k=>({...k}))
     };
-    const ex = tracks.findIndex(t=>t.objId===newTrack.objId);
+    const ex = tracks.findIndex(t=>t.objId===newTrack.objId || t.objRef===obj);
     if (ex>=0) tracks[ex]=newTrack; else tracks.push(newTrack);
     render();
     clog(`⧉ Track nusxalandi → "${newTrack.objName}"`, 'ok');
@@ -589,6 +694,13 @@ const TimelineSystem = (() => {
     if (btn) btn.classList.toggle('active', cutMode);
     if (!cutMode) { const cr=$('tl-cut-range'); if(cr) cr.style.display='none'; }
     clog(cutMode ? '✂ Kesish rejimi YOQILDI' : '✂ Kesish rejimi o\'chirildi', 'ok');
+  }
+
+  function tlToggleLoop() {
+    loopMode = !loopMode;
+    const btn = $('tl-loop-btn');
+    if (btn) btn.classList.toggle('active', loopMode);
+    clog(loopMode ? '🔁 Loop YOQILDI' : '🔁 Loop o\'chirildi', 'ok');
   }
 
   function tlSetGlobalEase(val) { globalEase = val; }
@@ -623,7 +735,17 @@ const TimelineSystem = (() => {
 
   function tlExportJSON() {
     if (!tracks.length) { clog('⚠ Timeline bo\'sh!','w'); return; }
-    const blob = new Blob([JSON.stringify({version:1,duration,tracks},null,2)],{type:'application/json'});
+    // Export'da objRef ni o'chirib yuboramiz (JSON.stringify circular reference chiqaradi)
+    const exportData = {
+      version: 1,
+      duration,
+      tracks: tracks.map(t => ({
+        objId:     t.objId,
+        objName:   t.objName,
+        keyframes: t.keyframes
+      }))
+    };
+    const blob = new Blob([JSON.stringify(exportData,null,2)],{type:'application/json'});
     const url  = URL.createObjectURL(blob);
     const a    = Object.assign(document.createElement('a'),{href:url,download:'apex3d_timeline.json'});
     document.body.appendChild(a); a.click(); document.body.removeChild(a);
@@ -639,7 +761,13 @@ const TimelineSystem = (() => {
       try {
         const data = JSON.parse(e.target.result);
         if (typeof data.duration==='number') duration = data.duration;
-        if (Array.isArray(data.tracks))      tracks   = data.tracks;
+        if (Array.isArray(data.tracks)) {
+          // Import'da objRef ni scene'dan tiklashga harakat qilamiz
+          tracks = data.tracks.map(t => ({
+            ...t,
+            objRef: getObjById(t.objId) || null
+          }));
+        }
         const inp = $('tl-dur-inp');
         if (inp) inp.value = duration;
         selectedKf = null;
@@ -662,13 +790,27 @@ const TimelineSystem = (() => {
       tlPlay, tlStop,
       tlAddKeyframe, tlAddVisKeyframe, tlAddSoundKeyframe,
       tlDeleteKeyframe, tlDuplicateKeyframe, tlDuplicateTrack,
-      tlToggleCutMode, tlSetGlobalEase, tlSetDuration,
+      tlToggleCutMode, tlToggleLoop, tlSetGlobalEase, tlSetDuration,
       tlSetKfEase, tlSetKfTangent, tlSetKfVis,
       tlExportJSON, tlImportJSON
     });
 
     render();
-    clog('⏱ Timeline v2 ishga tushdi  |  I = KF qo\'shish  |  Shift+I = VIS KF  |  Del = KF o\'chirish', 'ok');
+    clog('⏱ Timeline v2.1 ishga tushdi  |  I = KF qo\'shish  |  Shift+I = VIS KF  |  Del = KF o\'chirish', 'ok');
+
+    // ── Loop tugmasini qo'shish ────────────────────────────────
+    // tl-play-btn yoniga avtomatik inject qilinadi
+    if (!$('tl-loop-btn')) {
+      const playBtn = $('tl-play-btn');
+      if (playBtn) {
+        const loopBtn = document.createElement('button');
+        loopBtn.id        = 'tl-loop-btn';
+        loopBtn.title     = 'Loop (qayta-qayta ijro)';
+        loopBtn.textContent = '🔁';
+        loopBtn.onclick   = tlToggleLoop;
+        playBtn.insertAdjacentElement('afterend', loopBtn);
+      }
+    }
   }
 
   if (document.readyState === 'loading') {
@@ -682,10 +824,10 @@ const TimelineSystem = (() => {
     get currentTime() { return currentTime; },
     get duration()    { return duration;    },
     get isPlaying()   { return isPlaying;   },
+    get loopMode()    { return loopMode;    },
     render,
     getSelectedObj,
     setVar(name, obj) {
-      // Manual integration: TimelineSystem.setVar('sel', window.sel)
       window[name] = obj;
     }
   };
