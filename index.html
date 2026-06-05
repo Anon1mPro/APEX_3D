@@ -35,8 +35,6 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);di
 #multi-sel-bar { pointer-events:all; }
 #multi-sel-bar button:hover { filter:brightness(1.3); }
 
-/* POSITION */
-
 /* MAIN */
 #main{display:flex;flex:1;overflow:hidden}
 
@@ -130,7 +128,7 @@ body{font-family:'Rajdhani',sans-serif;background:var(--bg);color:var(--text);di
 .play-btn:hover{background:#fff}
 .play-btn.playing{background:var(--accent2);color:#fff}
 
-/* Play mode — editor panellarni bloklash */
+/* Play mode */
 body.play-mode #left-col,
 body.play-mode #right-col {
   pointer-events: none;
@@ -145,7 +143,6 @@ body.play-mode #toolbar {
   pointer-events: none;
   opacity: 0.35;
 }
-/* Play modeda canvas to'liq aktiv */
 body.play-mode #three-canvas {
   cursor: crosshair;
 }
@@ -199,14 +196,12 @@ body.play-mode #three-canvas {
 .tl-track-type-rot{background:rgba(255,107,53,.12);color:var(--accent2)}
 .tl-track-type-vis{background:rgba(204,136,255,.12);color:var(--accent4)}
 .tl-track-lane{flex:1;position:relative;height:100%;cursor:pointer}
-/* Easing color on segment */
 .tl-segment{position:absolute;top:4px;bottom:4px;background:rgba(0,229,255,.12);border-left:2px solid var(--accent);border-right:2px solid var(--accent);pointer-events:none}
 .tl-segment.ease-linear{background:rgba(0,229,255,.08)}
 .tl-segment.ease-smooth{background:rgba(57,255,20,.08);border-color:var(--accent3)}
 .tl-segment.ease-bounce{background:rgba(255,107,53,.1);border-color:var(--accent2)}
 .tl-segment.ease-elastic{background:rgba(204,136,255,.1);border-color:var(--accent4)}
 .tl-segment.ease-back{background:rgba(255,204,0,.08);border-color:#ffcc00}
-/* Keyframe diamond */
 .tl-kf{position:absolute;top:50%;transform:translate(-50%,-50%) rotate(45deg);width:8px;height:8px;background:var(--accent);border:1px solid #fff;cursor:pointer;z-index:3}
 .tl-kf:hover{background:#fff;transform:translate(-50%,-50%) rotate(45deg) scale(1.3)}
 .tl-kf.selected{background:var(--accent2);border-color:var(--accent2);box-shadow:0 0 4px var(--accent2)}
@@ -215,15 +210,12 @@ body.play-mode #three-canvas {
 .tl-kf.ease-bounce{background:var(--accent2)}
 .tl-kf.ease-elastic{background:var(--accent4)}
 .tl-kf.ease-back{background:#ffcc00}
-/* Visibility keyframe — circle shape */
 .tl-kf-vis{position:absolute;top:50%;transform:translate(-50%,-50%);width:9px;height:9px;border-radius:50%;border:2px solid var(--accent4);cursor:pointer;z-index:3}
 .tl-kf-vis.vis-on{background:var(--accent4)}
 .tl-kf-vis.vis-off{background:transparent}
 .tl-kf-vis:hover{transform:translate(-50%,-50%) scale(1.3)}
 .tl-kf-vis.selected{box-shadow:0 0 5px var(--accent4)}
-/* Tangent handle */
 .tl-tangent{position:absolute;top:50%;width:5px;height:5px;background:#ffcc00;border:1px solid #fff;border-radius:50%;cursor:ew-resize;z-index:4;transform:translateY(-50%)}
-/* KF tooltip popup */
 #tl-kf-popup{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 10px;z-index:9999;font-family:'Share Tech Mono',monospace;font-size:10px;display:none;min-width:130px;box-shadow:0 4px 12px rgba(0,0,0,.6)}
 #tl-kf-popup .kfp-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:3px 0}
 #tl-kf-popup .kfp-label{color:var(--muted);font-size:9px}
@@ -258,7 +250,6 @@ body.play-mode #three-canvas {
 #curve-editor-body{padding:6px 8px;display:flex;flex-direction:column;gap:6px}
 #curve-canvas-wrap{position:relative;background:var(--bg);border:1px solid var(--border);border-radius:3px;overflow:hidden;cursor:crosshair}
 #curve-canvas{display:block}
-/* Easing preset buttons in curve editor */
 .ce-ease-row{display:flex;gap:3px;flex-wrap:wrap}
 .ce-ease-btn{background:rgba(255,255,255,.04);border:1px solid var(--border);color:var(--muted);font-family:'Share Tech Mono',monospace;font-size:9px;padding:3px 7px;border-radius:2px;cursor:pointer;transition:all .15s;flex:1;min-width:50px;text-align:center}
 .ce-ease-btn:hover{border-color:var(--accent4);color:var(--accent4)}
@@ -357,7 +348,6 @@ body.play-mode #three-canvas {
 .ham-section-title{font-family:'Share Tech Mono',monospace;font-size:8px;letter-spacing:1.5px;color:var(--muted);padding:4px 10px 2px;text-transform:uppercase}
 .ham-sep{height:1px;background:var(--border);margin:4px 6px}
 
-
 .cam-mode-btn{background:none;border:1px solid var(--border);color:var(--muted);font-family:"Share Tech Mono",monospace;font-size:9px;padding:2px 6px;border-radius:2px;cursor:pointer;transition:all .15s;white-space:nowrap}
 .cam-mode-btn:hover{border-color:var(--accent4);color:var(--accent4)}
 .cam-mode-btn.active{background:rgba(204,136,255,.15);border-color:var(--accent4);color:var(--accent4)}
@@ -372,7 +362,7 @@ body.play-mode #three-canvas {
 .cam-kf:hover{background:#fff}
 .cam-kf.selected{background:var(--accent2);border-color:var(--accent2)}
 
-/* ═══ UI UTILITY CLASSES ═══════════════════════════════ */
+/* UI UTILITY CLASSES */
 .ui-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border-radius:8px;padding:14px 16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.85);font-family:'Rajdhani',sans-serif}
 .ui-modal-scroll{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:var(--panel);border-radius:8px;padding:14px 16px;z-index:9999;box-shadow:0 8px 32px rgba(0,0,0,.85);font-family:'Rajdhani',sans-serif;max-height:80vh;overflow-y:auto}
 .ui-popup{position:fixed;background:var(--panel);border:1px solid var(--border);border-radius:5px;padding:5px 0;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.7);font-family:'Share Tech Mono',monospace}
@@ -381,10 +371,8 @@ body.play-mode #three-canvas {
 .ui-overlay{position:fixed;inset:0;background:rgba(0,0,0,.78);z-index:9999;display:flex;align-items:center;justify-content:center}
 .ui-section-label{padding:5px 14px;font-size:9px;color:var(--accent3);font-family:'Share Tech Mono',monospace;border-bottom:1px solid var(--border);margin-bottom:3px;letter-spacing:1px}
 .ui-panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
-
 .asset-lib-item{display:flex;align-items:center;gap:6px;padding:6px 8px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;cursor:pointer;transition:border-color .15s}
 .asset-lib-item:hover{border-color:var(--accent)}
-/* ═══════════════════════════════════════════════════════ */
 </style>
 <!-- TOP BAR -->
 <div id="topbar">
@@ -415,7 +403,6 @@ body.play-mode #three-canvas {
       <button class="ham-item" onclick="importBlenderAnim();closeHamMenu()">🎬 Blender Anim</button>
       <div class="ham-sep"></div>
       <div class="ham-section-title">MODULLAR</div>
-      <!-- Dinamik tugmalar shu yerga qo'shiladi -->
       <button class="ham-item" onclick="SoundSystem.showPanel();closeHamMenu()">🔊 Ovoz Tizimi</button>
     </div>
   </div>
@@ -446,7 +433,6 @@ body.play-mode #three-canvas {
     <button class="add-btn" id="add-obj-btn">＋ Obyekt qo'shish</button>
   </div>
   <div id="tab-assets" style="display:none;flex-direction:column;flex:1;overflow:hidden">
-    <!-- Category tabs — 2 qator -->
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:2px;padding:4px;border-bottom:1px solid var(--border);flex-shrink:0">
       <button class="asset-cat-btn active" onclick="assetShowCat('primitives',this)">📦 Shakl</button>
       <button class="asset-cat-btn" onclick="assetShowCat('entities',this)">🎮 Entity</button>
@@ -455,14 +441,8 @@ body.play-mode #three-canvas {
       <button class="asset-cat-btn" onclick="assetShowCat('prefabs',this)">⭐ Prefab</button>
       <button class="asset-cat-btn" onclick="assetShowCat('models',this)">🗂 Model</button>
     </div>
-
-    <!-- Scroll container -->
     <div style="flex:1;overflow-y:auto">
-
-    <!-- ═══ PRIMITIVES ═══ -->
     <div id="asset-cat-primitives" class="asset-grid"></div>
-
-    <!-- ═══ ENTITIES ═══ -->
     <div id="asset-cat-entities" style="display:none;padding:4px">
       <div class="asset-section-label">HARAKATLANUVCHI ENTITYLAR</div>
       <div class="asset-entity-item" onclick="assetSpawnEntity('player')">
@@ -496,174 +476,131 @@ body.play-mode #three-canvas {
         <div class="asset-spawn-badge" style="color:var(--accent4);border-color:rgba(204,136,255,.3);background:rgba(204,136,255,.08)">SPAWN</div>
       </div>
     </div>
-
-    <!-- ═══ BLOCKS ═══ -->
     <div id="asset-cat-blocks" style="display:none;padding:6px">
       <div class="asset-section-label">MUHIT BLOKLARI</div>
-      <!-- Platforma -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('platform')" style="border-color:rgba(0,229,255,.25)">
         <span class="ae-icon">🟦</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Platforma</div><div class="ae-desc">Tekis yuzali qadam blok</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.3);background:rgba(0,229,255,.08)">SPAWN</div>
       </div>
-      <!-- Devor -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('wall')" style="border-color:rgba(200,212,224,.2)">
         <span class="ae-icon">🧱</span>
         <div class="ae-info"><div class="ae-name">Devor</div><div class="ae-desc">Vertikal to'siq blok</div></div>
         <div class="asset-spawn-badge">SPAWN</div>
       </div>
-      <!-- Zina -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('stair')" style="border-color:rgba(255,204,0,.25)">
         <span class="ae-icon">🪜</span>
         <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Zina</div><div class="ae-desc">3 pog'onali chiqish bloki</div></div>
         <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.3);background:rgba(255,204,0,.08)">SPAWN</div>
       </div>
-      <!-- Ko'prik -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('bridge')" style="border-color:rgba(255,107,53,.25)">
         <span class="ae-icon">🌉</span>
         <div class="ae-info"><div class="ae-name" style="color:#ff6b35">Ko'prik</div><div class="ae-desc">Uzun tor o'tish yo'li</div></div>
         <div class="asset-spawn-badge" style="color:#ff6b35;border-color:rgba(255,107,53,.3);background:rgba(255,107,53,.08)">SPAWN</div>
       </div>
-      <!-- Ustun -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('pillar')" style="border-color:rgba(200,212,224,.2)">
         <span class="ae-icon">🏛</span>
         <div class="ae-info"><div class="ae-name">Ustun</div><div class="ae-desc">Vertikal silindr ustun</div></div>
         <div class="asset-spawn-badge">SPAWN</div>
       </div>
-      <!-- Rampa -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('ramp')" style="border-color:rgba(57,255,20,.25)">
         <span class="ae-icon">📐</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Rampa</div><div class="ae-desc">Qiyalik, avtomobil va yugurish</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.3);background:rgba(57,255,20,.08)">SPAWN</div>
       </div>
-      <!-- To'siq -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('barrier')" style="border-color:rgba(255,68,68,.25)">
         <span class="ae-icon">🚧</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--red)">To'siq</div><div class="ae-desc">Yo'l to'suvchi barrier blok</div></div>
         <div class="asset-spawn-badge" style="color:var(--red);border-color:rgba(255,68,68,.3);background:rgba(255,68,68,.08)">SPAWN</div>
       </div>
-      <!-- Maydon -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('ground')" style="border-color:rgba(100,180,100,.25)">
         <span class="ae-icon">🟩</span>
         <div class="ae-info"><div class="ae-name" style="color:#66bb66">Maydon</div><div class="ae-desc">Katta tekis zamin parcha</div></div>
         <div class="asset-spawn-badge" style="color:#66bb66;border-color:rgba(100,180,100,.3);background:rgba(100,180,100,.08)">SPAWN</div>
       </div>
-      <!-- Quti -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('crate')" style="border-color:rgba(180,130,60,.3)">
         <span class="ae-icon">📦</span>
         <div class="ae-info"><div class="ae-name" style="color:#b48232">Yashik (Crate)</div><div class="ae-desc">Fizikali og'ir yashik</div></div>
         <div class="asset-spawn-badge" style="color:#b48232;border-color:rgba(180,130,60,.3);background:rgba(180,130,60,.08)">SPAWN</div>
       </div>
-      <!-- Bochka -->
       <div class="asset-entity-item" onclick="spawnSceneBlock('barrel')" style="border-color:rgba(180,100,50,.3)">
         <span class="ae-icon">🛢</span>
         <div class="ae-info"><div class="ae-name" style="color:#b46432">Bochka</div><div class="ae-desc">Aylanuvchi silindr bochka</div></div>
         <div class="asset-spawn-badge" style="color:#b46432;border-color:rgba(180,100,50,.3);background:rgba(180,100,50,.08)">SPAWN</div>
       </div>
     </div>
-
-    <!-- ═══ FUNCTIONAL BLOCKS ═══ -->
     <div id="asset-cat-functional" style="display:none;padding:6px">
       <div class="asset-section-label">O'YIN MEXANIKALARI</div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">
-        Sahnaqa qo'shing → scriptda avtomatik ishlaydi
-      </div>
-      <!-- Checkpoint -->
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">Sahnaqa qo'shing → scriptda avtomatik ishlaydi</div>
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('checkpoint')" style="border-color:rgba(57,255,20,.3)">
         <span class="ae-icon" style="font-size:22px">🚩</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Checkpoint</div><div class="ae-desc">Oyinchi tegsa progress saqlanadi</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.25);background:rgba(57,255,20,.08)">SPAWN</div>
       </div>
-      <!-- Spawn Block -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('spawnblock')" style="border-color:rgba(0,229,255,.3)">
         <span class="ae-icon" style="font-size:22px">📍</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Spawn Block</div><div class="ae-desc">Oyinchi tug'ilish / qayta tug'ilish</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.25);background:rgba(0,229,255,.08)">SPAWN</div>
       </div>
-      <!-- Damage Block -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('damageblock')" style="border-color:rgba(255,68,68,.3)">
         <span class="ae-icon" style="font-size:22px">💥</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--red)">Damage Block</div><div class="ae-desc">Teggan o'yinchiga zarar beradi</div></div>
         <div class="asset-spawn-badge" style="color:var(--red);border-color:rgba(255,68,68,.25);background:rgba(255,68,68,.08)">SPAWN</div>
       </div>
-      <!-- Teleport Block -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('teleportblock')" style="border-color:rgba(204,136,255,.3)">
         <span class="ae-icon" style="font-size:22px">🌀</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent4)">Teleport Block</div><div class="ae-desc">Oyinchini boshqa nuqtaga ko'chiradi</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent4);border-color:rgba(204,136,255,.25);background:rgba(204,136,255,.08)">SPAWN</div>
       </div>
-      <!-- Win Zone -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('winzone')" style="border-color:rgba(255,204,0,.3)">
         <span class="ae-icon" style="font-size:22px">🏆</span>
         <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Win Zone</div><div class="ae-desc">Oyinchini g'alaba zonasiga olib kiradi</div></div>
         <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.25);background:rgba(255,204,0,.08)">SPAWN</div>
       </div>
-      <!-- Kill Zone -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('killzone')" style="border-color:rgba(255,30,30,.3)">
         <span class="ae-icon" style="font-size:22px">☠️</span>
         <div class="ae-info"><div class="ae-name" style="color:#ff2222">Kill Zone</div><div class="ae-desc">Tushsa darhol o'lim, respawn</div></div>
         <div class="asset-spawn-badge" style="color:#ff2222;border-color:rgba(255,30,30,.25);background:rgba(255,30,30,.08)">SPAWN</div>
       </div>
-      <!-- Speed Boost -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('speedboost')" style="border-color:rgba(57,255,20,.25)">
         <span class="ae-icon" style="font-size:22px">⚡</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent3)">Speed Boost</div><div class="ae-desc">O'yinchi tezligini oshiradi</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent3);border-color:rgba(57,255,20,.25);background:rgba(57,255,20,.08)">SPAWN</div>
       </div>
-      <!-- Coin / Score -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('coin')" style="border-color:rgba(255,204,0,.25)">
         <span class="ae-icon" style="font-size:22px">🪙</span>
         <div class="ae-info"><div class="ae-name" style="color:#ffcc00">Tanga (Coin)</div><div class="ae-desc">Yig'ilganda ball qo'shadi</div></div>
         <div class="asset-spawn-badge" style="color:#ffcc00;border-color:rgba(255,204,0,.25);background:rgba(255,204,0,.08)">SPAWN</div>
       </div>
-      <!-- Moving Platform -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('movingplatform')" style="border-color:rgba(0,229,255,.2)">
         <span class="ae-icon" style="font-size:22px">↔️</span>
         <div class="ae-info"><div class="ae-name" style="color:var(--accent)">Harakatlanuvchi Platforma</div><div class="ae-desc">Oldinga-orqaga siljiydi</div></div>
         <div class="asset-spawn-badge" style="color:var(--accent);border-color:rgba(0,229,255,.25);background:rgba(0,229,255,.08)">SPAWN</div>
       </div>
-      <!-- Spring / Jump Pad -->
       <div class="asset-entity-item" onclick="spawnFunctionalBlock('jumppad')" style="border-color:rgba(255,107,53,.3)">
         <span class="ae-icon" style="font-size:22px">🟠</span>
         <div class="ae-info"><div class="ae-name" style="color:#ff6b35">Jump Pad</div><div class="ae-desc">Oyinchini havoga otadi</div></div>
         <div class="asset-spawn-badge" style="color:#ff6b35;border-color:rgba(255,107,53,.25);background:rgba(255,107,53,.08)">SPAWN</div>
       </div>
     </div>
-
-    <!-- ═══ PREFABS ═══ -->
     <div id="asset-cat-prefabs" style="display:none;padding:6px">
       <div class="asset-section-label">SAQLANGAN PREFABLAR</div>
       <div style="display:flex;gap:4px;margin-bottom:6px">
-        <button onclick="prefabSaveSelected()" style="flex:1;background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.3);color:#ffcc00;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px;border-radius:3px;cursor:pointer">
-          💾 Prefab saqlash
-        </button>
-        <button onclick="prefabImport()" title="JSON fayldan import" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:14px;padding:4px 8px;border-radius:3px;cursor:pointer">
-          📥
-        </button>
+        <button onclick="prefabSaveSelected()" style="flex:1;background:rgba(255,204,0,.08);border:1px solid rgba(255,204,0,.3);color:#ffcc00;font-family:'Rajdhani',sans-serif;font-size:11px;font-weight:700;padding:6px;border-radius:3px;cursor:pointer">💾 Prefab saqlash</button>
+        <button onclick="prefabImport()" title="JSON fayldan import" style="background:none;border:1px solid var(--border);color:var(--muted);font-size:14px;padding:4px 8px;border-radius:3px;cursor:pointer">📥</button>
       </div>
-      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">
-        Tanlangan objectni prefab sifatida saqlang.<br>Bolalar, materiallar va script saqlanadi.
-      </div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-bottom:6px;line-height:1.6">Tanlangan objectni prefab sifatida saqlang.<br>Bolalar, materiallar va script saqlanadi.</div>
       <div id="prefab-list" style="display:flex;flex-direction:column;gap:3px"></div>
     </div>
-
-    <!-- ═══ MODELS ═══ -->
     <div id="asset-cat-models" style="display:none;padding:6px">
       <div class="asset-section-label">GLB / GLTF MODELLAR</div>
-      <button onclick="assetImportGLB()" style="width:100%;background:rgba(0,229,255,.07);border:1px dashed rgba(0,229,255,.3);color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;padding:10px;border-radius:4px;cursor:pointer;margin-bottom:6px">
-        📂 GLB / GLTF Yuklash
-      </button>
+      <button onclick="assetImportGLB()" style="width:100%;background:rgba(0,229,255,.07);border:1px dashed rgba(0,229,255,.3);color:var(--accent);font-family:'Rajdhani',sans-serif;font-size:12px;font-weight:700;padding:10px;border-radius:4px;cursor:pointer;margin-bottom:6px">📂 GLB / GLTF Yuklash</button>
       <div id="asset-model-list" style="display:flex;flex-direction:column;gap:3px"></div>
       <div style="font-family:'Share Tech Mono',monospace;font-size:8px;color:var(--muted);margin-top:8px;line-height:1.8;padding:6px;background:rgba(0,0,0,.2);border-radius:3px;border:1px solid var(--border)">
-        Model sahnaga tushgach:<br>
-        ▸ Siljitish / aylantirish mumkin<br>
-        ▸ Script berish mumkin<br>
-        ▸ O'yin rejimida ishlaydi<br>
-        ▸ Animatsiyalar avtomatik yuklanadi
+        Model sahnaga tushgach:<br>▸ Siljitish / aylantirish mumkin<br>▸ Script berish mumkin<br>▸ O'yin rejimida ishlaydi<br>▸ Animatsiyalar avtomatik yuklanadi
       </div>
     </div>
-
-    </div><!-- /scroll container -->
+    </div>
   </div>
 </div>
 <div class="col-resizer" id="left-resizer" title="Tortib o'lchov o'zgartir"></div>
@@ -691,14 +628,12 @@ body.play-mode #three-canvas {
   </div>
   <div id="cvp">
     <canvas id="three-canvas"></canvas>
-    <!-- GIZMO OVERLAY SVG -->
     <svg id="gizmo-svg" style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;overflow:visible">
       <defs>
         <marker id="ah-x" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#ff4444"/></marker>
         <marker id="ah-y" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#44ff44"/></marker>
         <marker id="ah-z" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto"><polygon points="0,0 6,3 0,6" fill="#4488ff"/></marker>
       </defs>
-      <!-- MOVE/SCALE gizmo axes -->
       <g id="gizmo-x" style="pointer-events:all;cursor:ew-resize;display:none">
         <line id="gx-line" stroke="#ff4444" stroke-width="2.5" marker-end="url(#ah-x)"/>
         <text id="gx-lbl" fill="#ff4444" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">X</text>
@@ -714,23 +649,19 @@ body.play-mode #three-canvas {
         <text id="gz-lbl" fill="#4488ff" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Z</text>
         <rect id="gz-hit" fill="transparent" height="14" style="cursor:nesw-resize"/>
       </g>
-      <!-- ROTATE gizmo rings — shown only in rotate mode -->
-      <!-- Y axis ring = KO'K (gorizontal, Y o'qi atrofida) -->
       <g id="rot-ring-y" style="pointer-events:all;cursor:ew-resize;display:none">
         <ellipse id="rot-y-ellipse" fill="none" stroke="#00ccff" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
-        <ellipse id="rot-y-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ew-resize"/>
+        <ellipse id="rot-y-hit" fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ew-resize"/>
         <text id="rot-y-lbl" fill="#00ccff" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Y</text>
       </g>
-      <!-- X axis ring = YASHIL (X o'qi atrofida) -->
       <g id="rot-ring-x" style="pointer-events:all;cursor:ns-resize;display:none">
         <ellipse id="rot-x-ellipse" fill="none" stroke="#44ff88" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
-        <ellipse id="rot-x-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ns-resize"/>
+        <ellipse id="rot-x-hit" fill="transparent" stroke="transparent" stroke-width="14" style="cursor:ns-resize"/>
         <text id="rot-x-lbl" fill="#44ff88" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">X</text>
       </g>
-      <!-- Z axis ring = SARIQ (Z o'qi atrofida) -->
       <g id="rot-ring-z" style="pointer-events:all;cursor:nesw-resize;display:none">
         <ellipse id="rot-z-ellipse" fill="none" stroke="#ffdd00" stroke-width="2.5" stroke-opacity="0.95" stroke-linecap="round"/>
-        <ellipse id="rot-z-hit"     fill="transparent" stroke="transparent" stroke-width="14" style="cursor:nesw-resize"/>
+        <ellipse id="rot-z-hit" fill="transparent" stroke="transparent" stroke-width="14" style="cursor:nesw-resize"/>
         <text id="rot-z-lbl" fill="#ffdd00" font-size="11" font-family="'Share Tech Mono',monospace" font-weight="700">Z</text>
       </g>
     </svg>
@@ -771,9 +702,9 @@ body.play-mode #three-canvas {
         <button class="tl-btn vis" onclick="tlAddVisKeyframe()">👁 VIS</button>
         <button class="tl-btn" onclick="tlAddSoundKeyframe()" style="color:var(--accent3);border-color:rgba(57,255,20,.3)" title="Ovoz keyframe qo'shish">♪ SND</button>
         <button class="tl-btn" onclick="tlDeleteKeyframe()">✕</button>
-        <button class="tl-btn" onclick="tlDuplicateKeyframe()" title="Tanlangan keyframeni nusxalash (keyingi pozitsiyaga)" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉</button>
-        <button class="tl-btn" onclick="tlDuplicateTrack()" title="Tanlangan ob'ekt trackini yangi ob'ektga nusxalash" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉ Track</button>
-        <button class="tl-btn" id="tl-cut-btn" onclick="tlToggleCutMode()" title="Qismni kesish rejimi — diapazon tanlang, keyin Cut bosing" style="color:var(--accent2);border-color:rgba(255,107,53,.3)">✂ Kes</button>
+        <button class="tl-btn" onclick="tlDuplicateKeyframe()" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉</button>
+        <button class="tl-btn" onclick="tlDuplicateTrack()" style="color:var(--accent4);border-color:rgba(204,136,255,.3)">⧉ Track</button>
+        <button class="tl-btn" id="tl-cut-btn" onclick="tlToggleCutMode()" style="color:var(--accent2);border-color:rgba(255,107,53,.3)">✂ Kes</button>
         <div class="sep" style="margin:0 2px"></div>
         <span style="font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace">Easing:</span>
         <select id="tl-ease-select" onchange="tlSetGlobalEase(this.value)">
@@ -789,7 +720,7 @@ body.play-mode #three-canvas {
         <span style="font-size:9px;color:var(--muted);font-family:'Share Tech Mono',monospace">s</span>
         <span id="tl-time-lbl">0.00s</span>
         <div style="width:1px;height:14px;background:var(--border);margin:0 3px"></div>
-        <button class="tl-btn" onclick="tlExportJSON()" id="tl-export-btn" title="Animatsiyani JSON yuklash (faqat Camera bo'lganda)" style="color:var(--accent);border-color:rgba(0,229,255,.3);white-space:nowrap">⬇ Export</button>
+        <button class="tl-btn" onclick="tlExportJSON()" id="tl-export-btn" style="color:var(--accent);border-color:rgba(0,229,255,.3);white-space:nowrap">⬇ Export</button>
         <button class="tl-btn" onclick="document.getElementById('tl-import-file').click()" style="color:var(--accent2);border-color:rgba(255,107,53,.3);white-space:nowrap">⬆ Import</button>
         <input type="file" id="tl-import-file" accept=".json,.zip" style="display:none" onchange="tlImportJSON(event)">
       </div>
@@ -801,7 +732,6 @@ body.play-mode #three-canvas {
         <div id="tl-tracks"></div>
       </div>
     </div>
-    <!-- KF popup -->
     <div id="tl-kf-popup">
       <div class="kfp-row"><span class="kfp-label">EASING</span>
         <select id="kfp-ease" onchange="tlSetKfEase(this.value)">
@@ -825,7 +755,8 @@ body.play-mode #three-canvas {
           <option value="0">Ko'rinmaydi ❌</option>
         </select>
       </div>
-      <div class="kfp-row"><span class="kfp-label" style="font-size:8px;color:var(--red);cursor:pointer" onclick="tlDeleteKeyframe();$('tl-kf-popup').style.display='none'">✕ O'chirish</span>
+      <div class="kfp-row">
+        <span class="kfp-label" style="font-size:8px;color:var(--red);cursor:pointer" onclick="tlDeleteKeyframe();$('tl-kf-popup').style.display='none'">✕ O'chirish</span>
         <span class="kfp-label" style="font-size:8px;color:var(--accent);cursor:pointer" onclick="tlDuplicateKeyframe();$('tl-kf-popup').style.display='none'">⧉ Nusxa</span>
       </div>
     </div>
@@ -857,6 +788,7 @@ body.play-mode #three-canvas {
     <button onclick="tlSndKfDelete()" style="padding:4px 8px;background:none;border:1px solid var(--border);color:var(--red);font-size:9px;border-radius:3px;cursor:pointer">✕</button>
   </div>
 </div>
+
 <div id="script-panel" style="display:none;flex-direction:column;height:100%;overflow:hidden">
   <div style="height:28px;display:flex;align-items:center;padding:0 8px;gap:6px;border-bottom:1px solid var(--border);flex-shrink:0;background:var(--panel2)">
     <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--accent3)">⚡</span>
@@ -868,14 +800,11 @@ body.play-mode #three-canvas {
     <button onclick="scriptInsertTemplate()" style="background:rgba(0,229,255,.08);border:1px solid rgba(0,229,255,.2);color:var(--accent);font-family:'Share Tech Mono',monospace;font-size:10px;padding:2px 6px;border-radius:2px;cursor:pointer">📋 Shablon</button>
   </div>
   <div style="display:flex;flex:1;overflow:hidden">
-    <!-- Line numbers -->
     <div id="script-lines" style="width:28px;background:#060810;border-right:1px solid var(--border);overflow:hidden;padding:4px 0;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--muted);text-align:right;padding-right:5px;line-height:1.5;flex-shrink:0;user-select:none"></div>
-    <!-- Code editor -->
     <textarea id="script-editor" spellcheck="false" style="flex:1;background:#060810;border:none;color:#e0e8f0;font-family:'Share Tech Mono',monospace;font-size:11px;line-height:1.5;padding:4px 8px;outline:none;resize:none;tab-size:2" placeholder="// Obyekt tanlang va script yozing...
 // onCreate, onUpdate, onCollide, onPlayerEnter
 // Misol: this.position.y += Math.sin(time)*0.01" oninput="scriptUpdateLines()"></textarea>
   </div>
-  <!-- Script API docs mini -->
   <div id="script-api-bar" style="height:22px;display:flex;align-items:center;gap:8px;padding:0 8px;border-top:1px solid var(--border);background:#060810;overflow-x:auto;flex-shrink:0">
     <span style="font-family:'Share Tech Mono',monospace;font-size:9px;color:var(--muted);flex-shrink:0">API:</span>
     <span class="script-api-tag" onclick="scriptInsert('this.position.x')">this.pos</span>
@@ -895,16 +824,15 @@ body.play-mode #three-canvas {
 
 <div class="col-resizer" id="right-resizer" title="Tortib o'lchov o'zgartir"></div>
 <div id="right-col">
+  <!-- ONLINE tab olib tashlandi — faqat INSPEKTOR qoldi -->
   <div class="panel-tabs" style="border-bottom:1px solid var(--border)">
-    <div class="ptab active" id="inspector-tab" onclick="switchInspectorTab('inspector',this)">INSPEKTOR</div>
-    <div class="ptab" id="online-tab" onclick="switchInspectorTab('online',this)">🌐 ONLINE</div>
+    <div class="ptab active" id="inspector-tab">INSPEKTOR</div>
   </div>
   <div id="inspector-content">
     <div style="padding:16px;font-size:11px;color:var(--muted);text-align:center;line-height:1.9">
       Obyektni tanlang<br><span style="font-size:9px;font-family:'Share Tech Mono',monospace">LMB: tanlash<br>F: fokus<br>Del: o'chirish</span>
     </div>
   </div>
-  <!-- CURVE EDITOR PANEL — inspector pastida -->
   <div id="curve-editor-panel">
     <div id="curve-editor-header" onclick="ceCycleResize()">
       <span id="curve-editor-title">◈ EGRI CHIZIQ MUHARRIR</span>
@@ -912,9 +840,7 @@ body.play-mode #three-canvas {
       <span id="curve-editor-close" onclick="event.stopPropagation();ceClose()" title="Yopish">✕</span>
     </div>
     <div id="curve-editor-body">
-      <!-- Track tabs: POS / ROT / VIS -->
       <div class="ce-track-tabs" id="ce-track-tabs"></div>
-      <!-- Easing presets -->
       <div class="ce-ease-row" id="ce-ease-row">
         <button class="ce-ease-btn" data-ease="linear" onclick="ceSetEase('linear')">Linear</button>
         <button class="ce-ease-btn active" data-ease="smooth" onclick="ceSetEase('smooth')">Smooth</button>
@@ -922,7 +848,6 @@ body.play-mode #three-canvas {
         <button class="ce-ease-btn" data-ease="elastic" onclick="ceSetEase('elastic')">Elastic</button>
         <button class="ce-ease-btn" data-ease="back" onclick="ceSetEase('back')">Back ↩</button>
       </div>
-      <!-- Canvas -->
       <div id="curve-canvas-wrap">
         <canvas id="curve-canvas" width="209" height="120"></canvas>
       </div>
@@ -933,15 +858,10 @@ body.play-mode #three-canvas {
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<!-- GLTFLoader — GLB/GLTF yuklash uchun -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
-<!-- DRACOLoader — Draco siqilgan GLB uchun -->
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/DRACOLoader.js"></script>
-<!-- Draco decoder for compressed GLB -->
 <script src="https://www.gstatic.com/draco/versioned/decoders/1.5.6/draco_decoder.js"></script>
-<!-- Rapier physics WASM -->
 <script>
-// Rapier WASM — dynamic import (file:// va server da ham ishlaydi)
 (function() {
   import('https://cdn.skypack.dev/@dimforge/rapier3d-compat@0.11.2')
     .then(mod => mod.default || mod)
@@ -990,7 +910,6 @@ body.play-mode #three-canvas {
 <script src="scripts/systems/fog-weather.js"></script>
 <script src="scripts/systems/animation.js"></script>
 <script>
-// _keyLabel - keybindings.js dan oldin kerak (inspector.js ishlatadi)
 function _keyLabel(code) {
   if (!code) return '---';
   const map = {
@@ -1061,15 +980,5 @@ window._mouseAnimEvents = window._mouseAnimEvents || {
 <script src="scripts/systems/editor-tools.js"></script>
 <script src="scripts/systems/constraints.js"></script>
 <script src="scripts/core/camera-preview.js"></script>
-<script src="scripts/systems/multiplayer.js"></script>
-<script src="scripts/systems/multiplayer-storage.js"></script>
-<script src="scripts/systems/multiplayer-smooth.js"></script>
-<script src="scripts/systems/multiplayer-viz.js"></script>
-<script src="scripts/systems/multiplayer-admin.js"></script>
-<script src="scripts/ui/multiplayer-panel.js"></script>
-<script src="scripts/ui/inspector-tabs.js"></script>
-<script src="scripts/systems/multiplayer-hooks.js"></script>
-<script src="scripts/systems/multiplayer-selection-sync.js"></script>
-<script src="scripts/systems/multiplayer-player-mode.js"></script>
 </body>
 </html>
